@@ -86,3 +86,12 @@ class TestBrain:
         brain.store("key1", "value1")
         brain.store("key1", "value2")
         assert brain.retrieve("key1") == "value2"
+    
+    def test_delete_cleans_up_empty_tags(self):
+        """Test that deleting knowledge cleans up empty tag sets."""
+        brain = Brain()
+        brain.store("key1", "value1", tags=["unique-tag"])
+        assert "key1" in brain.search_by_tag("unique-tag")
+        brain.delete("key1")
+        # After deletion, the empty tag set should be cleaned up
+        assert brain.search_by_tag("unique-tag") == []

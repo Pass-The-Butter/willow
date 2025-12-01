@@ -20,6 +20,7 @@ class Brain:
         """Initialize an empty brain."""
         self._knowledge = {}
         self._tags = {}
+        self._key_tags = {}  # Reverse mapping: key -> set of tags
     
     def store(self, key: str, value: str, tags: Optional[list] = None) -> None:
         """
@@ -38,6 +39,7 @@ class Brain:
         self._knowledge[key] = value
         
         if tags:
+            self._key_tags[key] = set(tags)
             for tag in tags:
                 if tag not in self._tags:
                     self._tags[tag] = set()
@@ -88,9 +90,15 @@ class Brain:
         """
         if key in self._knowledge:
             del self._knowledge[key]
-            # Remove from all tags
-            for tag in self._tags:
-                self._tags[tag].discard(key)
+            # Remove from tags using reverse mapping (O(1) per tag instead of O(n) for all tags)
+            if key in self._key_tags:
+                for tag in self._key_tags[key]:
+                    if tag in self._tags:
+                        self._tags[tag].discard(key)
+                        # Clean up empty tag sets
+                        if not self._tags[tag]:
+                            del self._tags[tag]
+                del self._key_tags[key]
             return True
         return False
     
