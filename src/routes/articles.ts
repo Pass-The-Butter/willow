@@ -51,12 +51,36 @@ export function createArticleRoutes(kb: KnowledgeBase): Router {
   router.post('/', (req: Request, res: Response) => {
     const input: CreateArticleInput = req.body;
     
-    if (!input.title || !input.content || !input.author) {
-      res.status(400).json({ error: 'Title, content, and author are required' });
+    // Validate required fields are present and are non-empty strings
+    if (
+      !input.title ||
+      !input.content ||
+      !input.author ||
+      typeof input.title !== 'string' ||
+      typeof input.content !== 'string' ||
+      typeof input.author !== 'string' ||
+      input.title.trim().length === 0 ||
+      input.content.trim().length === 0 ||
+      input.author.trim().length === 0
+    ) {
+      res.status(400).json({ error: 'Title, content, and author are required and must be non-empty strings' });
       return;
     }
+
+    // Validate tags if provided
+    if (input.tags !== undefined) {
+      if (!Array.isArray(input.tags) || !input.tags.every((tag) => typeof tag === 'string')) {
+        res.status(400).json({ error: 'Tags must be an array of strings' });
+        return;
+      }
+    }
     
-    const article = kb.addArticle(input);
+    const article = kb.addArticle({
+      title: input.title.trim(),
+      content: input.content.trim(),
+      author: input.author.trim(),
+      tags: input.tags?.map((tag) => tag.trim()).filter((tag) => tag.length > 0),
+    });
     res.status(201).json(article);
   });
 

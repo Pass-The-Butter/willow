@@ -159,6 +159,25 @@ describe('KnowledgeBase', () => {
 
       expect(results).toEqual([]);
     });
+
+    it('should return empty array for empty query', () => {
+      const results = kb.searchArticles('');
+
+      expect(results).toEqual([]);
+    });
+
+    it('should return empty array for whitespace-only query', () => {
+      const results = kb.searchArticles('   ');
+
+      expect(results).toEqual([]);
+    });
+
+    it('should trim query before searching', () => {
+      const results = kb.searchArticles('  TypeScript  ');
+
+      expect(results.length).toBe(1);
+      expect(results[0].title).toBe('TypeScript Guide');
+    });
   });
 
   describe('getArticlesByTag', () => {

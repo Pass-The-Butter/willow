@@ -92,6 +92,48 @@ describe('Willow API', () => {
         expect(res.status).toBe(201);
         expect(res.body.tags).toEqual(['tag1', 'tag2']);
       });
+
+      it('should return 400 when title is empty string', async () => {
+        const res = await request(app)
+          .post('/api/articles')
+          .send({
+            title: '   ',
+            content: 'Content',
+            author: 'Author',
+          });
+
+        expect(res.status).toBe(400);
+        expect(res.body.error).toBeDefined();
+      });
+
+      it('should return 400 when tags is not an array of strings', async () => {
+        const res = await request(app)
+          .post('/api/articles')
+          .send({
+            title: 'Title',
+            content: 'Content',
+            author: 'Author',
+            tags: 'not-an-array',
+          });
+
+        expect(res.status).toBe(400);
+        expect(res.body.error).toContain('Tags must be an array of strings');
+      });
+
+      it('should trim whitespace from input fields', async () => {
+        const res = await request(app)
+          .post('/api/articles')
+          .send({
+            title: '  Trimmed Title  ',
+            content: '  Trimmed Content  ',
+            author: '  Trimmed Author  ',
+          });
+
+        expect(res.status).toBe(201);
+        expect(res.body.title).toBe('Trimmed Title');
+        expect(res.body.content).toBe('Trimmed Content');
+        expect(res.body.author).toBe('Trimmed Author');
+      });
     });
 
     describe('GET /api/articles/:id', () => {

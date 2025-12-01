@@ -54,7 +54,12 @@ export class KnowledgeBase {
    * Search articles by title or content
    */
   searchArticles(query: string): Article[] {
-    const lowerQuery = query.toLowerCase();
+    // Validate query is a non-empty string
+    if (!query || typeof query !== 'string' || query.trim().length === 0) {
+      return [];
+    }
+    
+    const lowerQuery = query.trim().toLowerCase();
     return this.getAllArticles().filter(
       (article) =>
         article.title.toLowerCase().includes(lowerQuery) ||
