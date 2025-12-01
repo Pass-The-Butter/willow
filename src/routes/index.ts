@@ -1,0 +1,1 @@
+export { createArticleRoutes } from './articles';
