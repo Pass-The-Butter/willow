@@ -35,9 +35,9 @@ The Brain is **AuraDB** (Neo4j Cloud). All project knowledge lives here.
 ```python
 # Load credentials
 import os
-os.environ['NEO4J_URI'] = "neo4j+s://e59298d2.databases.neo4j.io"
+os.environ['NEO4J_URI'] = "neo4j+s://YOUR_INSTANCE.databases.neo4j.io"
 os.environ['NEO4J_USER'] = "neo4j"
-os.environ['NEO4J_PASSWORD'] = "c2U7h1mwvmYn2k2cr_Fp9EaUrZaLZdEQ3_Cawt6zvyU"
+os.environ['NEO4J_PASSWORD'] = "YOUR_PASSWORD"
 
 # Or load from .env file
 with open('.env', 'r') as f:
