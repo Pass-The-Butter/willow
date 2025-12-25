@@ -65,7 +65,7 @@ def deploy():
             f"-e POSTGRES_USER=n8n "
             f"-e POSTGRES_PASSWORD={pg_pass} " 
             f"-e POSTGRES_DB=n8n "
-            f"-v {REMOTE_DIR}/postgres-data:/var/lib/postgresql/data "
+            f"-v {REMOTE_DIR}/postgres-data-v2:/var/lib/postgresql/data "
             f"postgres:15-alpine"
         )
         if not run_command(client, pg_cmd):
@@ -97,7 +97,7 @@ def deploy():
             f"-e DB_POSTGRESDB_PASSWORD={pg_pass} "
             f"-v {REMOTE_DIR}/n8n-data:/home/node/.n8n "
             f"n8nio/n8n:latest "
-            f"n8n start --tunnel"
+            f"start --tunnel"
         )
         
         if run_command(client, n8n_cmd):

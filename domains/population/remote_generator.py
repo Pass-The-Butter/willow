@@ -10,14 +10,15 @@ from multiprocessing import Pool, cpu_count
 from datetime import datetime, timedelta
 
 # Configuration
-DB_HOST = "bunny" # Connect to Xeon Server
+DB_HOST = "127.0.0.1" # Connect to Xeon Server (Localhost)
 DB_PORT = "5432"
 DB_NAME = "population"
 DB_USER = "willow"
 DB_PASS = "willowdev123"
 
 # Ollama Configuration (Frank)
-OLLAMA_URL = "http://localhost:11434/api/generate"
+# Ollama Configuration (Frank)
+OLLAMA_URL = "http://frank.clouded-newton.ts.net:11434/api/generate"
 OLLAMA_MODEL = "deepseek-r1:32b" # High reasoning model
 USE_LLM_FOR_QUOTES = True # Set to False for speed
 
@@ -140,7 +141,9 @@ def generate_batch(batch_id):
                 premium,
                 status,
                 created_at,
-                valid_until
+                created_at,
+                valid_until,
+                quote_text # Added text
             ))
 
             # Claims (for ISSUED quotes)
@@ -170,11 +173,10 @@ def generate_batch(batch_id):
     cur.execute("INSERT INTO people (id, first_name, last_name, age, risk_score, policy_start_date, active) VALUES " + args_str)
     
     # Bulk Insert Quotes
-    # Note: We are currently NOT inserting the generated 'quote_text' because the schema doesn't support it yet.
-    # We will update the schema in the next step. For now, we just generate it to burn GPU cycles.
+    # Updated to include quote_text
     if quotes_data:
-        args_str = ','.join(cur.mogrify("(%s,%s,%s,%s,%s,%s,%s)", x).decode('utf-8') for x in quotes_data)
-        cur.execute("INSERT INTO quotes (id, person_id, product_type, premium_amount, status, created_at, valid_until) VALUES " + args_str)
+        args_str = ','.join(cur.mogrify("(%s,%s,%s,%s,%s,%s,%s,%s)", x).decode('utf-8') for x in quotes_data)
+        cur.execute("INSERT INTO quotes (id, person_id, product_type, premium_amount, status, created_at, valid_until, text) VALUES " + args_str)
 
     # Bulk Insert Claims
     if claims_data:

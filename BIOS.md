@@ -16,11 +16,13 @@ This is the **bootstrap protocol** for all Willow agents. Like a computer's BIOS
 
 Your role determines what context you load:
 
-| Role | View | Access Level |
-|------|------|--------------|
-| **Captain (Chief Officer)** | Entire organogram | Full context, all domains |
-| **Project Manager** | Sprint objectives, task status | Domain-level, team coordination |
-| **Feature Agent** | Single task branch | Scoped to your task path only |
+| Role                        | View                             | Access Level                                      |
+| --------------------------- | -------------------------------- | ------------------------------------------------- |
+| **Captain (Chief Officer)** | Entire organogram                | Full context, all domains                         |
+| **Project Manager**         | Sprint objectives, task status   | Domain-level, team coordination                   |
+| **Feature Agent**           | Single task branch               | Scoped to your task path only                     |
+| **DevOps Manager**          | Infrastructure, Deployment, Logs | Zep, Graphiti, Docker, Tailscale, N8N             |
+| **Project Manager**         | Sprint objectives, task status   | Domain-level, team coordination, Linear/Jira Sync |
 
 ---
 
@@ -102,7 +104,7 @@ with driver.session() as session:
                collect(DISTINCT {name: t.name, status: t.status}) as tasks
         ORDER BY d.name
     """)
-    
+
     print("=" * 80)
     print("CAPTAIN'S FULL CONTEXT")
     print("=" * 80)
@@ -110,11 +112,12 @@ with driver.session() as session:
         print(f"\n{record['domain']} Domain:")
         print(f"  Components: {', '.join(record['components'])}")
         print(f"  Tasks: {len([t for t in record['tasks'] if t['name']])} total")
-        
+
 driver.close()
 ```
 
 **You also need**:
+
 - Infrastructure status: `python core/skills/query_infrastructure.py`
 - Recent decisions: `python core/skills/search_memory_hybrid.py "recent decisions"`
 - Open RFCs: Query `(:RFC {status: "Open"})`
@@ -139,7 +142,7 @@ with driver.session() as session:
                collect(dep.name) as blockers
         ORDER BY t.status DESC
     """)
-    
+
     print("CURRENT SPRINT STATUS:")
     for record in result:
         status_icon = "🟡" if record['status'] == 'In Progress' else "⚪"
@@ -149,8 +152,10 @@ with driver.session() as session:
 ```
 
 **You also need**:
+
 - Jira sync: `python bootstrap/sync_atlassian.py` (TODO: implement)
 - Team messages: Query `(:Message {status: "Unread"})`
+- **Role Definition**: Read `core/roles/project_manager.md` for your prime directive.
 
 ---
 
@@ -196,7 +201,7 @@ with driver.session() as session:
                d.notes as notes
         ORDER BY d.timestamp DESC
     """, task_name="Faker Integration")
-    
+
     print("RECENT WORK:")
     for record in result:
         print(f"- {record['when']}: {record['agent']}")
@@ -214,7 +219,7 @@ with driver.session() as session:
                m.subject as subject,
                m.body as body
     """, task_name="Faker Integration")
-    
+
     for record in result:
         print(f"📧 From {record['from']}: {record['subject']}")
         print(f"   {record['body']}")
@@ -238,7 +243,7 @@ with driver.session() as session:
             status: $status,
             notes: $notes
         })
-    """, 
+    """,
     task_name="Faker Integration",
     agent_name="Your Name Here",
     status="In Progress",
@@ -266,6 +271,7 @@ with driver.session() as session:
 ## Quick Reference: Essential Queries
 
 ### Captain's Dashboard
+
 ```cypher
 // All domains and their health
 MATCH (d:Domain)-[:HAS_COMPONENT]->(c:Component)-[:HAS_TASK]->(t:Task)
@@ -275,6 +281,7 @@ RETURN d.name as domain,
 ```
 
 ### PM's Sprint View
+
 ```cypher
 // Current sprint tasks
 MATCH (t:Task)
@@ -284,6 +291,7 @@ ORDER BY t.status DESC
 ```
 
 ### Agent's Task Context
+
 ```cypher
 // Get my task details
 MATCH (t:Task {name: "Your Task Name"})
@@ -312,15 +320,19 @@ print(f"AuraDB: {status['auradb']}")
 ## Common Errors
 
 ### "URI scheme b'' is not supported"
+
 **Fix**: Environment variables not loaded. Run `source .env` first.
 
 ### "Connection refused"
+
 **Fix**: Tailscale not running or not connected to network.
 
 ### "Task not found in organogram"
+
 **Fix**: Your task path is wrong. Check spelling or ask Captain for correct path.
 
 ### "No diary entries"
+
 **Fix**: This is a new task. Start logging your work now.
 
 ---
@@ -378,4 +390,3 @@ echo "✅ BIOS complete. Ready to work."
 You are now connected to the Brain and have the context you need. Proceed with your work.
 
 **Remember**: The Brain (organogram) is the source of truth. When in doubt, query it.
-

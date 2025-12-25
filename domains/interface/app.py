@@ -2,6 +2,9 @@ import os
 import psycopg2
 from flask import Flask, render_template, jsonify
 from dotenv import load_dotenv
+import requests
+import sys
+import platform
 
 # Load environment variables
 load_dotenv()
@@ -25,6 +28,66 @@ def get_db_connection():
     )
     return conn
 
+# --- Resource Tracking (Global) ---
+RESOURCES = [
+    {"name": "Python", "version": platform.python_version(), "type": "Language"},
+    {"name": "Flask", "version": "3.0.0", "type": "Framework"},
+    {"name": "Neo4j Driver", "version": "5.14.0", "type": "Database Driver"},
+    {"name": "Psycopg2", "version": "2.9.9", "type": "Database Driver"},
+    {"name": "Requests", "version": requests.__version__, "type": "HTTP Library"},
+    {"name": "Tailscale", "version": "Detected", "type": "Infrastructure"},
+    {"name": "Docker", "version": "Detected", "type": "Infrastructure"},
+]
+
+# --- Status Checks ---
+def check_n8n_status():
+    """Checks if N8N is reachable (assuming localhost tunnel or tailscale)."""
+    try:
+        # Pinging the local tunnel port or the bunny IP if known
+        # In production this might be 'http://bunny:5678/healthz'
+        # For this dashboard running ON the same network:
+        response = requests.get("http://bunny:5678/healthz", timeout=1)
+        return "ONLINE" if response.status_code == 200 else "ERROR"
+    except:
+        return "OFFLINE"
+
+def check_telegram_status():
+    """Checks if Telegram Bot is responsive via API."""
+    token = os.getenv("TELEGRAM_BOT_TOKEN")
+    if not token:
+        return "MISSING_TOKEN"
+    try:
+        url = f"https://api.telegram.org/bot{token}/getMe"
+        response = requests.get(url, timeout=1)
+        return "ONLINE" if response.status_code == 200 else "API_ERROR"
+    except:
+        return "UNREACHABLE"
+
+@app.route('/api/send_message', methods=['POST'])
+def send_message():
+    """Sends a message to the Grapevine (N8N)."""
+    data = request.json
+    message = data.get('message')
+    
+    if not message:
+        return jsonify({"status": "error", "message": "No message provided"}), 400
+
+    # Forward to N8N Grapevine Webhook
+    n8n_webhook = "https://bunny.clouded-newton.ts.net/webhook/grapevine"
+    payload = {
+        "message": message,
+        "source": "dashboard",
+        "type": "TASK",
+        "session_id": "dashboard-user"
+    }
+
+    try:
+        # Fire and forget (or wait for ack)
+        requests.post(n8n_webhook, json=payload, timeout=5)
+        return jsonify({"status": "success", "message": "Sent to Grapevine"})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 @app.route('/')
 def landing():
     return render_template('landing.html')
@@ -42,9 +105,10 @@ def dashboard():
     return render_template('dashboard.html')
 
 @app.route('/board')
+@app.route('/board')
 def board():
     """Single Pane of Glass - Board Member View"""
-    return render_template('board.html')
+    return render_template('board.html', resources=RESOURCES)
 
 @app.route('/doc/password-sop')
 def password_sop():
@@ -66,13 +130,33 @@ def password_sop():
     except Exception as e:
         return f"Error loading SOP: {e}"
 
+@app.route('/docs/bios')
+def docs_bios():
+    """Render the BIOS as simple HTML"""
+    try:
+        with open('BIOS.md', 'r') as f:
+            content = f.read()
+        html = f"""
+        <html>
+        <head><title>Willow BIOS</title></head>
+        <body style="font-family: monospace; max-width: 800px; margin: 2rem auto; line-height: 1.6; background: #1e1e1e; color: #d4d4d4; padding: 20px;">
+            <a href="/board" style="color: #667eea; text-decoration: none;">← Back to Board</a>
+            <pre style="white-space: pre-wrap;">{content}</pre>
+        </body>
+        </html>
+        """
+        return html
+    except Exception as e:
+        return f"Error loading BIOS: {e}"
+
 @app.route('/api/pulse')
 def pulse():
     """Returns system status for the live dashboard."""
     from datetime import datetime
     return jsonify({
         "timestamp": datetime.now().isoformat(),
-        "n8n": "ONLINE",
+        "n8n": check_n8n_status(),
+        "telegram": check_telegram_status(),
         "auradb": "ONLINE", 
         "bunny": "ONLINE",
         "vector_indexes": 4, 

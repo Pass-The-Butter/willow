@@ -1,0 +1,53 @@
+{
+  "name": "Telegram Echo",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "telegram",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        460,
+        300
+      ],
+      "webhookId": "telegram"
+    },
+    {
+      "parameters": {
+        "chatId": "={{$node[\"Webhook\"].json[\"message\"][\"chat\"][\"id\"]}}",
+        "text": "=Willow Heard: {{$node[\"Webhook\"].json[\"message\"][\"text\"]}}",
+        "additionalFields": {}
+      },
+      "name": "Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [
+        680,
+        300
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "1",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

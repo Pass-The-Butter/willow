@@ -243,16 +243,56 @@
               <span><i class="fas fa-brain"></i> AuraDB (Graph)</span>
               <span style="color: var(--success)">ONLINE</span>
             </div>
-                    <div>
-                        <span><a href="http://lisa:5678" target="_blank" style="text-decoration:none;color:inherit;"><i class="fas fa-bolt"></i> N8N (Workflow)</a></span>
-                        <span style="color: var(--success);">ONLINE</span>
-                    </div>
-                    <div>
-                        <span><i class="fas fa-paper-plane"></i> Telegram Bot</span>
-                        <span style="color: var(--warning);">PENDING SETUP</span>
-                    </div>
+                    <!-- Moved to Communications Card -->
+                    <!-- Moved to Communications Card -->
           </div>
         </div>
+
+        <!-- 4. Communications Health -->
+        <div class="card">
+          <div class="card-header">
+            <h2><i class="fas fa-comments"></i> Communications</h2>
+          </div>
+          <div class="system-health">
+              <div>
+                  <span><a href="http://bunny:5678" target="_blank" style="text-decoration:none;color:inherit;"><i class="fas fa-bolt"></i> N8N (Workflow)</a></span>
+                  <span id="stat-n8n" style="font-weight:bold;">CHECKING...</span>
+              </div>
+              <div>
+                  <span><i class="fas fa-paper-plane"></i> Telegram Bot</span>
+                  <span id="stat-telegram" style="font-weight:bold;">CHECKING...</span>
+              </div>
+          </div>
+        </div>
+
+        <!-- 5. System Resources (User Requested) -->
+        <div class="card">
+            <div class="card-header">
+                <h2><i class="fas fa-cubes"></i> System Resources</h2>
+            </div>
+            <ul class="actions-list" style="padding: 0; font-size: 0.9em;">
+                {% for res in resources %}
+                <li>
+                    <span class="tag" style="background: var(--secondary)">{{ res.type }}</span>
+                    <strong>{{ res.name }}</strong>
+                    <span style="float:right; color: var(--text-light)">{{ res.version }}</span>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <!-- 6. Telegram Comms Gadget -->
+        <div class="card">
+            <div class="card-header">
+                <h2><i class="fas fa-paper-plane"></i> Quick Comms</h2>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <input type="text" id="grapevine-msg" placeholder="Tell Willow something..." style="flex: 1; padding: 10px; border-radius: 5px; border: 1px solid #333; background: #222; color: #fff;">
+                <button onclick="sendMessage()" style="padding: 10px 20px; background: var(--primary); color: white; border: none; border-radius: 5px; cursor: pointer;">Send</button>
+            </div>
+            <div id="msg-status" style="margin-top: 5px; font-size: 0.8em; color: #888; min-height: 1.2em;"></div>
+        </div>
+      </div>
       </div>
 
       <!-- 4. Live Metrics (Population) -->
@@ -295,8 +335,9 @@
             .then(data => {
                 document.getElementById('last-updated').innerText = new Date().toLocaleTimeString();
                 
-                // Update Status Lights (Simple logic for now)
-                updateStatus('n8n-status', data.n8n);
+                // Update Status Lights
+                updateStatus('stat-n8n', data.n8n);
+                updateStatus('stat-telegram', data.telegram);
                 
                 // Animate the 'Live' indicator
                 const dot = document.getElementById('pulse-dot');
@@ -308,9 +349,47 @@
       }
 
       function updateStatus(elementId, status) {
-          // Placeholder for element updating logic
-          // Implementation requires adding IDs to the specific spans in the HTML above
+          const el = document.getElementById(elementId);
+          if (!el) return;
+          
+          el.innerText = status;
+          if (status === 'ONLINE') el.style.color = 'var(--success)';
+          else if (status === 'OFFLINE' || status === 'ERROR') el.style.color = 'var(--danger)';
+          else el.style.color = 'var(--warning)';
       }
+
+      function sendMessage() {
+            const input = document.getElementById('grapevine-msg');
+            const status = document.getElementById('msg-status');
+            const msg = input.value;
+            
+            if (!msg) return;
+
+            status.innerText = "Sending...";
+            status.style.color = "#888";
+
+            fetch('/api/send_message', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({message: msg})
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    status.innerText = "Sent to Grapevine! 🍇";
+                    status.style.color = "var(--success)";
+                    input.value = "";
+                    setTimeout(() => status.innerText = "", 3000);
+                } else {
+                    status.innerText = "Error: " + data.message;
+                    status.style.color = "var(--danger)";
+                }
+            })
+            .catch(err => {
+                status.innerText = "Network Error";
+                status.style.color = "var(--danger)";
+            });
+        }
 
       // Start the heartbeat
       setInterval(checkPulse, 5000);
