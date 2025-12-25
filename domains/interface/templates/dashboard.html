@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Willow Dashboard - System Status</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #e2e8f0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            min-height: 100vh;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            color: #fff;
+            margin-bottom: 0.5rem;
+        }
+
+        .tagline {
+            color: #64748b;
+            font-size: 1.1rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 1.5rem;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            border-color: #38bdf8;
+            box-shadow: 0 0 20px rgba(56, 189, 248, 0.2);
+        }
+
+        .card h2 {
+            color: #38bdf8;
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #334155;
+        }
+
+        .metric:last-child {
+            border-bottom: none;
+        }
+
+        .metric-label {
+            color: #cbd5e1;
+            font-size: 0.95rem;
+        }
+
+        .metric-value {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+        }
+
+        .status-online {
+            background: #10b981;
+            box-shadow: 0 0 10px #10b981;
+        }
+
+        .status-standby {
+            background: #f59e0b;
+            box-shadow: 0 0 10px #f59e0b;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #334155;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 0.5rem;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #38bdf8, #60a5fa);
+            transition: width 0.5s ease;
+        }
+
+        .domain-card {
+            background: rgba(56, 189, 248, 0.1);
+            border-color: #38bdf8;
+        }
+
+        .domain-status {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .completion-percent {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #38bdf8;
+        }
+
+        .task-list {
+            margin-top: 1rem;
+        }
+
+        .task-item {
+            padding: 0.5rem;
+            margin-bottom: 0.5rem;
+            background: rgba(15, 23, 42, 0.5);
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+
+        .task-complete {
+            color: #10b981;
+        }
+
+        .task-progress {
+            color: #f59e0b;
+        }
+
+        .task-notstarted {
+            color: #64748b;
+        }
+
+        .refresh-btn {
+            background: transparent;
+            border: 1px solid #38bdf8;
+            color: #38bdf8;
+            padding: 0.75rem 2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: block;
+            margin: 2rem auto;
+        }
+
+        .refresh-btn:hover {
+            background: rgba(56, 189, 248, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .back-link {
+            text-align: center;
+            margin-top: 2rem;
+        }
+
+        .back-link a {
+            color: #38bdf8;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .back-link a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📊 Willow Dashboard</h1>
+            <p class="tagline">System Status & Population Metrics</p>
+        </header>
+
+        <!-- Infrastructure Status -->
+        <div class="grid">
+            <div class="card">
+                <h2>🖥️ Infrastructure</h2>
+                <div class="metric">
+                    <div>
+                        <span class="status-indicator status-online"></span>
+                        <span class="metric-label">Mac Mini</span>
+                    </div>
+                    <span style="color: #10b981; font-weight: 600;">Online</span>
+                </div>
+                <div class="metric">
+                    <div>
+                        <span class="status-indicator status-standby"></span>
+                        <span class="metric-label">Frank (Gen)</span>
+                    </div>
+                    <span style="color: #f59e0b; font-weight: 600;">Standby</span>
+                </div>
+                <div class="metric">
+                    <div>
+                        <span class="status-indicator status-online"></span>
+                        <span class="metric-label">Bunny (DB)</span>
+                    </div>
+                    <span style="color: #10b981; font-weight: 600;">Online</span>
+                </div>
+                <div class="metric">
+                    <div>
+                        <span class="status-indicator status-online"></span>
+                        <span class="metric-label">AuraDB</span>
+                    </div>
+                    <span style="color: #10b981; font-weight: 600;">Online</span>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>📈 Population Database</h2>
+                <div class="metric">
+                    <span class="metric-label">Customers</span>
+                    <span class="metric-value" id="customers-count">9,862</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Pets</span>
+                    <span class="metric-value" id="pets-count">2,982</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Quotes Generated</span>
+                    <span class="metric-value" id="quotes-count">0</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Pet Ownership Rate</span>
+                    <span class="metric-value">30%</span>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>🧠 Knowledge Graph</h2>
+                <div class="metric">
+                    <span class="metric-label">Domains</span>
+                    <span class="metric-value">4</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Total Tasks</span>
+                    <span class="metric-value">39</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Tasks Complete</span>
+                    <span class="metric-value">8</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Unread Messages</span>
+                    <span class="metric-value">5</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Domain Progress -->
+        <h2 style="color: #38bdf8; font-size: 1.8rem; margin-bottom: 1.5rem; text-align: center;">🎯 Sprint Progress</h2>
+        
+        <div class="grid">
+            <div class="card domain-card">
+                <div class="domain-status">
+                    <h2 style="margin: 0;">💻 Interface</h2>
+                    <span class="completion-percent">66%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 66%"></div>
+                </div>
+                <div class="task-list">
+                    <div class="task-item task-complete">✅ Landing Page</div>
+                    <div class="task-item task-complete">✅ Quote Form</div>
+                    <div class="task-item task-notstarted">⚪ Dashboard</div>
+                </div>
+            </div>
+
+            <div class="card domain-card">
+                <div class="domain-status">
+                    <h2 style="margin: 0;">👥 Population</h2>
+                    <span class="completion-percent">66%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 66%"></div>
+                </div>
+                <div class="task-list">
+                    <div class="task-item task-complete">✅ Customer Table</div>
+                    <div class="task-item task-complete">✅ Pet Table</div>
+                    <div class="task-item task-complete">✅ Quote Table</div>
+                    <div class="task-item task-complete">✅ Faker Integration</div>
+                    <div class="task-item task-notstarted">⚪ Ollama Integration</div>
+                    <div class="task-item task-notstarted">⚪ Batch Processing</div>
+                </div>
+            </div>
+
+            <div class="card domain-card">
+                <div class="domain-status">
+                    <h2 style="margin: 0;">📱 Communications</h2>
+                    <span class="completion-percent">0%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 0%"></div>
+                </div>
+                <div class="task-list">
+                    <div class="task-item task-notstarted">⚪ N8N Workflow Setup</div>
+                    <div class="task-item task-notstarted">⚪ Agent Message Interface</div>
+                    <div class="task-item task-notstarted">⚪ Organogram Integration</div>
+                    <div class="task-item task-notstarted">⚪ Status Broadcasting</div>
+                </div>
+            </div>
+        </div>
+
+        <button class="refresh-btn" onclick="location.reload()">🔄 Refresh Data</button>
+
+        <div class="back-link">
+            <a href="/">← Back to Mission Control</a>
+        </div>
+    </div>
+
+    <script>
+        // Auto-refresh every 30 seconds
+        setTimeout(() => {
+            location.reload();
+        }, 30000);
+    </script>
+</body>
+</html>

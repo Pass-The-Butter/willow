@@ -1,0 +1,7 @@
+neo4j==5.15.0
+python-dotenv==1.0.0
+certifi==2023.11.17
+psycopg2-binary==2.9.9
+Faker==22.5.1
+atlassian-python-api==4.0.7
+Flask==3.0.0

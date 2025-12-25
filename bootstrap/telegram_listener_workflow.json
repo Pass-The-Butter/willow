@@ -1,0 +1,102 @@
+{
+  "name": "Telegram Listener (Grapevine Feeder)",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1,
+      "position": [
+        100,
+        300
+      ],
+      "id": "telegram-trigger",
+      "name": "On Message",
+      "credentials": {
+        "telegramApi": {
+          "id": "TELEGRAM_CREDENTIAL_ID",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:5678/webhook/grapevine",
+        "method": "POST",
+        "jsonParameters": true,
+        "bodyParametersUi": {
+          "parameter": [
+            {
+              "name": "message",
+              "value": "={{ $json.message.text }}"
+            },
+            {
+              "name": "source",
+              "value": "telegram"
+            },
+            {
+              "name": "type",
+              "value": "TASK"
+            },
+            {
+              "name": "session_id",
+              "value": "telegram-{{ $json.message.chat.id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        300,
+        300
+      ],
+      "id": "forward-to-grapevine",
+      "name": "Forward to Grapevine"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.message.chat.id }}",
+        "text": "🍇 heard you.",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [
+        500,
+        300
+      ],
+      "id": "ack",
+      "name": "Ack"
+    }
+  ],
+  "connections": {
+    "On Message": {
+      "main": [
+        [
+          {
+            "node": "Forward to Grapevine",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Forward to Grapevine": {
+      "main": [
+        [
+          {
+            "node": "Ack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

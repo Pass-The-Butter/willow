@@ -1,0 +1,109 @@
+{
+  "name": "JIT Memory Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "memory",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        100,
+        300
+      ],
+      "id": "webhook-trigger",
+      "name": "Webhook Query"
+    },
+    {
+      "parameters": {
+        "model": "llama3-70b-8192",
+        "prompt": "={{ $json.body.query }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlmGroq",
+      "typeVersion": 1,
+      "position": [
+        300,
+        300
+      ],
+      "id": "groq-llm",
+      "name": "Groq LLM",
+      "credentials": {
+        "groqApi": {
+          "id": "GROQ_CREDENTIAL_ID",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "query": "={{ $json.body.query }}",
+        "limit": 5
+      },
+      "type": "n8n-nodes-base.neo4j",
+      "typeVersion": 1,
+      "position": [
+        500,
+        300
+      ],
+      "id": "neo4j-vector-search",
+      "name": "AuraDB Vector Search",
+      "credentials": {
+        "neo4jApi": {
+          "id": "NEO4J_CREDENTIAL_ID",
+          "name": "Neo4j connection"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        700,
+        300
+      ],
+      "id": "response",
+      "name": "Return Context"
+    }
+  ],
+  "connections": {
+    "Webhook Query": {
+      "main": [
+        [
+          {
+            "node": "Groq LLM",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq LLM": {
+      "main": [
+        [
+          {
+            "node": "AuraDB Vector Search",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AuraDB Vector Search": {
+      "main": [
+        [
+          {
+            "node": "Return Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

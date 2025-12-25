@@ -1,0 +1,190 @@
+{
+  "name": "Economical Audit Agent (Groq)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "audit",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        100,
+        300
+      ],
+      "id": "trigger",
+      "name": "Audit Trigger"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "triggerAtHour": 9
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [
+        100,
+        100
+      ],
+      "id": "schedule",
+      "name": "Daily Schedule"
+    },
+    {
+      "parameters": {
+        "query": "MATCH (n) RETURN count(n) as node_count",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.neo4j",
+      "typeVersion": 1,
+      "position": [
+        300,
+        200
+      ],
+      "id": "neo4j-stats",
+      "name": "Check AuraDB",
+      "credentials": {
+        "neo4jApi": {
+          "id": "NEO4J_CREDENTIAL_ID",
+          "name": "Neo4j connection"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT COUNT(*) FROM people;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [
+        300,
+        400
+      ],
+      "id": "postgres-stats",
+      "name": "Check Population",
+      "credentials": {
+        "postgres": {
+          "id": "POSTGRES_CREDENTIAL_ID",
+          "name": "Postgres connection"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "llama3-70b-8192",
+        "prompt": "=System Audit Report:\n- Brain Nodes (AuraDB): {{ $json.node_count }}\n- Population (Postgres): {{ $json.count }}\n\nUSER MESSAGE: Generate a concise, witty executive summary of these assets. Confirm system health.",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlmGroq",
+      "typeVersion": 1,
+      "position": [
+        500,
+        300
+      ],
+      "id": "groq-analyst",
+      "name": "Groq Analyst (Free)",
+      "credentials": {
+        "groqApi": {
+          "id": "GROQ_CREDENTIAL_ID",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $env.TELEGRAM_CHAT_ID }}",
+        "text": "={{ $json.response }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [
+        700,
+        300
+      ],
+      "id": "telegram-report",
+      "name": "Report to Boss",
+      "credentials": {
+        "telegramApi": {
+          "id": "TELEGRAM_CREDENTIAL_ID",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Audit Trigger": {
+      "main": [
+        [
+          {
+            "node": "Check AuraDB",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Check Population",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Daily Schedule": {
+      "main": [
+        [
+          {
+            "node": "Check AuraDB",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Check Population",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check AuraDB": {
+      "main": [
+        [
+          {
+            "node": "Groq Analyst (Free)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Population": {
+      "main": [
+        [
+          {
+            "node": "Groq Analyst (Free)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Analyst (Free)": {
+      "main": [
+        [
+          {
+            "node": "Report to Boss",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

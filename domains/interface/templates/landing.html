@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚀 Willow Mission Control</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #e2e8f0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding-bottom: 2rem;
+            border-bottom: 2px solid #38bdf8;
+        }
+
+        h1 {
+            font-size: 3rem;
+            color: #fff;
+            margin-bottom: 1rem;
+            text-shadow: 0 0 20px rgba(56, 189, 248, 0.5);
+        }
+
+        .tagline {
+            font-size: 1.2rem;
+            color: #38bdf8;
+            font-style: italic;
+            font-weight: 300;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .card {
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 1.5rem;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            border-color: #38bdf8;
+            box-shadow: 0 0 20px rgba(56, 189, 248, 0.3);
+            transform: translateY(-4px);
+        }
+
+        .card h2 {
+            color: #38bdf8;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .card-content {
+            color: #cbd5e1;
+            line-height: 1.6;
+        }
+
+        .resource-list {
+            list-style: none;
+        }
+
+        .resource-list li {
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #334155;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .resource-list li:last-child {
+            border-bottom: none;
+        }
+
+        .resource-name {
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .resource-link {
+            color: #38bdf8;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.2s;
+        }
+
+        .resource-link:hover {
+            color: #60a5fa;
+            text-decoration: underline;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+        }
+
+        .status-online {
+            background: #10b981;
+            box-shadow: 0 0 10px #10b981;
+        }
+
+        .status-standby {
+            background: #f59e0b;
+            box-shadow: 0 0 10px #f59e0b;
+        }
+
+        .status-offline {
+            background: #ef4444;
+            box-shadow: 0 0 10px #ef4444;
+        }
+
+        .sprint-objectives {
+            background: rgba(56, 189, 248, 0.1);
+            border-left: 4px solid #38bdf8;
+            padding: 1.5rem;
+            border-radius: 8px;
+        }
+
+        .sprint-objectives ol {
+            margin-left: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .sprint-objectives li {
+            padding: 0.5rem 0;
+            color: #cbd5e1;
+        }
+
+        .philosophy {
+            background: rgba(139, 92, 246, 0.1);
+            border: 1px solid #8b5cf6;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .philosophy h3 {
+            color: #a78bfa;
+            margin-bottom: 1rem;
+        }
+
+        .philosophy blockquote {
+            border-left: 4px solid #8b5cf6;
+            padding-left: 1rem;
+            margin: 1rem 0;
+            font-style: italic;
+            color: #c4b5fd;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 0.75rem 2rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: #38bdf8;
+            color: #0f172a;
+        }
+
+        .btn-primary:hover {
+            background: #60a5fa;
+            box-shadow: 0 0 20px rgba(56, 189, 248, 0.5);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border: 2px solid #38bdf8;
+            color: #38bdf8;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(56, 189, 248, 0.1);
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 4rem;
+            padding-top: 2rem;
+            border-top: 1px solid #334155;
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .cta-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚀 Willow Mission Control</h1>
+            <p class="tagline">"The Graph is the Memory. The Code is the Will."</p>
+        </header>
+
+        <div class="grid">
+            <div class="card">
+                <h2>🔗 Critical Resources</h2>
+                <ul class="resource-list">
+                    <li>
+                        <span class="resource-name">GitHub</span>
+                        <a href="https://github.com/Pass-The-Butter/willow" target="_blank" class="resource-link">Source Code →</a>
+                    </li>
+                    <li>
+                        <span class="resource-name">Jira</span>
+                        <a href="https://agilemeshnet.atlassian.net/jira/software/projects/SCRUM/boards/1" target="_blank" class="resource-link">Task Board →</a>
+                    </li>
+                    <li>
+                        <span class="resource-name">Confluence</span>
+                        <a href="https://agilemeshnet.atlassian.net/wiki" target="_blank" class="resource-link">Documentation →</a>
+                    </li>
+                    <li>
+                        <span class="resource-name">AuraDB</span>
+                        <a href="https://console.neo4j.io" target="_blank" class="resource-link">The Brain →</a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="card">
+                <h2>🛠 System Status</h2>
+                <ul class="resource-list">
+                    <li>
+                        <span class="resource-name">
+                            <span class="status-indicator status-online"></span>Mac Mini
+                        </span>
+                        <span style="color: #64748b;">Control Plane</span>
+                    </li>
+                    <li>
+                        <span class="resource-name">
+                            <span class="status-indicator status-standby"></span>Frank
+                        </span>
+                        <span style="color: #64748b;">Generation Node</span>
+                    </li>
+                    <li>
+                        <span class="resource-name">
+                            <span class="status-indicator status-online"></span>Bunny
+                        </span>
+                        <span style="color: #64748b;">Database</span>
+                    </li>
+                    <li>
+                        <span class="resource-name">
+                            <span class="status-indicator status-online"></span>AuraDB
+                        </span>
+                        <span style="color: #64748b;">Memory Graph</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="sprint-objectives">
+            <h2 style="color: #38bdf8; margin-bottom: 1rem;">🎯 Current Sprint Objectives</h2>
+            <ol>
+                <li><strong>Sync Resources</strong> - Establish Mission Control, ensure nodes are code-synced</li>
+                <li><strong>Ignite Population</strong> - Frank runs remote_generator.py to populate Postgres</li>
+                <li><strong>Hello World</strong> - Display Customer Quote from generated data</li>
+                <li><strong>Ontology Building</strong> - Map data concepts into Neo4j Graph</li>
+            </ol>
+        </div>
+
+        <div class="philosophy">
+            <h3>🧠 Development Philosophy</h3>
+            <h4 style="color: #a78bfa; margin-bottom: 0.5rem;">The "Just Enough Context" Principle</h4>
+            <blockquote>
+                An agent should be able to read the high-level plan, traverse the graph to a specific function, 
+                and have <em>just enough</em> information in its context window to complete a task.
+            </blockquote>
+            <ul style="margin-top: 1rem; margin-left: 1.5rem; color: #cbd5e1;">
+                <li>✗ Don't load the whole codebase</li>
+                <li>✓ Do read MISSION_CONTROL.md → Query Graph for Task → Read specific file → Execute</li>
+            </ul>
+        </div>
+
+        <div class="cta-buttons">
+            <a href="/" class="btn btn-primary">View Demo Data</a>
+            <a href="https://github.com/Pass-The-Butter/willow/blob/master/README.md" target="_blank" class="btn btn-secondary">Read Documentation</a>
+        </div>
+
+        <footer>
+            <p>Willow Project · Multi-Agent Knowledge Graph System</p>
+            <p style="margin-top: 0.5rem;">Mac Mini → Frank (Generation) → Bunny (Storage) → AuraDB (Memory)</p>
+        </footer>
+    </div>
+</body>
+</html>

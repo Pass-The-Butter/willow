@@ -1,0 +1,181 @@
+{
+  "name": "The Grapevine (Core Event Bus)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "grapevine",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        100,
+        300
+      ],
+      "id": "webhook-trigger",
+      "name": "Grapevine Ingest"
+    },
+    {
+      "parameters": {
+        "query": "MERGE (s:Session {id: $json.body.session_id})\nCREATE (d:DiaryEntry {timestamp: datetime(), content: $json.body.message, type: $json.body.type, source: $json.body.source})\nMERGE (s)-[:HAS_ENTRY]->(d)\nRETURN d",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.neo4j",
+      "typeVersion": 1,
+      "position": [
+        300,
+        300
+      ],
+      "id": "diarise-neo4j",
+      "name": "Diarise to Survive (Neo4j)",
+      "credentials": {
+        "neo4jApi": {
+          "id": "NEO4J_CREDENTIAL_ID",
+          "name": "Neo4j connection"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "dataType": "string",
+        "value1": "={{ $json.body.type }}",
+        "rules": {
+          "rules": [
+            {
+              "value2": "URGENT",
+              "output": 0
+            },
+            {
+              "value2": "RESEARCH",
+              "output": 1
+            },
+            {
+              "value2": "TASK",
+              "output": 2
+            }
+          ]
+        },
+        "fallbackOutput": 3
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [
+        500,
+        300
+      ],
+      "id": "router",
+      "name": "Router (Switch)"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $env.TELEGRAM_CHAT_ID }}",
+        "text": "🚨 URGENT GRAPEVINE ALERT:\n{{ $json.body.message }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [
+        750,
+        150
+      ],
+      "id": "telegram-alert",
+      "name": "Telegram Alert",
+      "credentials": {
+        "telegramApi": {
+          "id": "TELEGRAM_CREDENTIAL_ID",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        750,
+        300
+      ],
+      "id": "research-placeholder",
+      "name": "Spawn Research Agent"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        750,
+        450
+      ],
+      "id": "task-placeholder",
+      "name": "Spawn Task Agent"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        750,
+        600
+      ],
+      "id": "log-only",
+      "name": "Log Only"
+    }
+  ],
+  "connections": {
+    "Grapevine Ingest": {
+      "main": [
+        [
+          {
+            "node": "Diarise to Survive (Neo4j)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Diarise to Survive (Neo4j)": {
+      "main": [
+        [
+          {
+            "node": "Router (Switch)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Router (Switch)": {
+      "main": [
+        [
+          {
+            "node": "Telegram Alert",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Spawn Research Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Spawn Task Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Log Only",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

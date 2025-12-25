@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AgileMesh Board | Single Pane of Glass</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <style>
+      :root {
+        --primary: #667eea;
+        --secondary: #764ba2;
+        --bg: #f4f6f9;
+        --card-bg: #ffffff;
+        --text: #333;
+        --text-light: #666;
+        --success: #28a745;
+        --warning: #ffc107;
+        --danger: #dc3545;
+        --info: #17a2b8;
+      }
+
+      body {
+        font-family: "Segoe UI", Roboto, sans-serif;
+        background-color: var(--bg);
+        color: var(--text);
+        margin: 0;
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 1400px;
+        margin: 0 auto;
+      }
+
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+      }
+
+      .logo h1 {
+        font-size: 24px;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin: 0;
+      }
+
+      .logo span {
+        font-size: 14px;
+        color: var(--text-light);
+        display: block;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+      }
+
+      .card {
+        background: var(--card-bg);
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        transition: transform 0.2s;
+      }
+
+      .card:hover {
+        transform: translateY(-2px);
+      }
+
+      .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 10px;
+      }
+
+      .card-header h2 {
+        font-size: 18px;
+        margin: 0;
+        color: var(--secondary);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .quick-links a {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px;
+        text-decoration: none;
+        color: var(--text);
+        background: #f8f9fa;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        transition: background 0.2s;
+      }
+
+      .quick-links a:hover {
+        background: #e9ecef;
+        color: var(--primary);
+      }
+
+      .status-indicator {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        display: inline-block;
+      }
+      .status-active {
+        background-color: var(--success);
+      }
+      .status-pending {
+        background-color: var(--warning);
+      }
+      .status-down {
+        background-color: var(--danger);
+      }
+
+      .system-health div {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px solid #f1f1f1;
+      }
+
+      .actions-list li {
+        list-style: none;
+        padding: 10px 0;
+        border-bottom: 1px dashed #eee;
+      }
+
+      .actions-list li .tag {
+        font-size: 11px;
+        padding: 2px 6px;
+        border-radius: 4px;
+        background: var(--primary);
+        color: white;
+        margin-right: 8px;
+      }
+
+      .iframe-container {
+        width: 100%;
+        height: 300px;
+        border: none;
+        border-radius: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <div class="logo">
+          <h1>AgileMesh Board</h1>
+          <span>Willow AI - Executive View | Updated: <span id="last-updated">--:--:--</span></span>
+        </div>
+        <div>
+          <span class="status-indicator status-active" id="pulse-dot"></span> System Online
+        </div>
+      </header>
+
+      <div class="grid">
+        <!-- 1. Quick Access (The "Links" user wanted) -->
+        <div class="card">
+          <div class="card-header">
+            <h2><i class="fas fa-link"></i> Mission Control</h2>
+          </div>
+          <div class="quick-links">
+            <a
+              href="https://linear.app/agilemesh/project/willow-8917fec120a3/overview"
+              target="_blank"
+            >
+              <i class="fas fa-tasks"></i> Linear (Tasks)
+            </a>
+            <a
+              href="https://agilemeshnet-1766667903740.atlassian.net/jira/software/projects/SMS/boards/1"
+              target="_blank"
+            >
+              <i class="fab fa-jira"></i> Jira (Project Mgmt)
+            </a>
+            <a href="https://console.neo4j.io" target="_blank">
+              <i class="fas fa-brain"></i> Neo4j Console (The Brain)
+            </a>
+            <a href="https://github.com/Pass-The-Butter/willow" target="_blank">
+              <i class="fab fa-github"></i> GitHub Repo
+            </a>
+          </div>
+        </div>
+
+        <!-- 2. Action Items (User's Task List) -->
+        <div class="card">
+          <div class="card-header">
+            <h2><i class="fas fa-clipboard-check"></i> Action Required</h2>
+          </div>
+          <ul class="actions-list" style="padding: 0">
+            <li>
+              <span class="tag" style="background: var(--danger)"
+                >CRITICAL</span
+              >
+              Rotate Neo4j Password
+              <a href="/doc/password-sop" style="font-size: 12px; float: right"
+                >View SOP</a
+              >
+            </li>
+            <li>
+              <span class="tag" style="background: var(--warning)"
+                >PLUMBING</span
+              >
+              Provide Linear API Key
+            </li>
+            <li>
+              <span class="tag" style="background: var(--info)">REVIEW</span>
+              Approve Insurance PoC Plan
+            </li>
+          </ul>
+        </div>
+
+        <!-- 3. Infrastructure Health (Hetzner / Bunny view) -->
+        <div class="card">
+          <div class="card-header">
+            <h2><i class="fas fa-server"></i> System Health</h2>
+          </div>
+          <div class="system-health">
+            <div>
+              <span><i class="fas fa-robot"></i> Willow (Mac Mini)</span>
+              <span style="color: var(--success)">ONLINE</span>
+            </div>
+            <div>
+              <span><i class="fas fa-database"></i> Bunny (Postgres)</span>
+              <span style="color: var(--success)">ONLINE</span>
+            </div>
+            <div>
+              <span><i class="fas fa-brain"></i> AuraDB (Graph)</span>
+              <span style="color: var(--success)">ONLINE</span>
+            </div>
+                    <div>
+                        <span><a href="http://lisa:5678" target="_blank" style="text-decoration:none;color:inherit;"><i class="fas fa-bolt"></i> N8N (Workflow)</a></span>
+                        <span style="color: var(--success);">ONLINE</span>
+                    </div>
+                    <div>
+                        <span><i class="fas fa-paper-plane"></i> Telegram Bot</span>
+                        <span style="color: var(--warning);">PENDING SETUP</span>
+                    </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. Live Metrics (Population) -->
+      <div class="card">
+        <div class="card-header">
+          <h2><i class="fas fa-chart-line"></i> Live Metrics</h2>
+        </div>
+        <div
+          style="
+            display: flex;
+            justify-content: space-around;
+            text-align: center;
+          "
+        >
+          <div>
+            <h3 style="font-size: 32px; margin: 0; color: var(--primary)">
+              9,862
+            </h3>
+            <p style="color: var(--text-light); margin: 0">Customers</p>
+          </div>
+          <div>
+            <h3 style="font-size: 32px; margin: 0; color: var(--secondary)">
+              2,982
+            </h3>
+            <p style="color: var(--text-light); margin: 0">Pets Insured</p>
+          </div>
+          <div>
+            <h3 style="font-size: 32px; margin: 0; color: var(--success)">4</h3>
+            <p style="color: var(--text-light); margin: 0">Vector Indexes</p>
+          </div>
+        </div>
+      </div>
+    </div>
+      <script>
+      // The Pulse: Updates dashboard every 5 seconds
+      function checkPulse() {
+        console.log("💓 Checking Pulse...");
+        fetch('/api/pulse')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('last-updated').innerText = new Date().toLocaleTimeString();
+                
+                // Update Status Lights (Simple logic for now)
+                updateStatus('n8n-status', data.n8n);
+                
+                // Animate the 'Live' indicator
+                const dot = document.getElementById('pulse-dot');
+                if (dot) {
+                    dot.style.opacity = (dot.style.opacity === '0.2') ? '1' : '0.2';
+                }
+            })
+            .catch(err => console.error("Pulse missed:", err));
+      }
+
+      function updateStatus(elementId, status) {
+          // Placeholder for element updating logic
+          // Implementation requires adding IDs to the specific spans in the HTML above
+      }
+
+      // Start the heartbeat
+      setInterval(checkPulse, 5000);
+      checkPulse(); // Initial beat
+    </script>
+</body>
+</html>

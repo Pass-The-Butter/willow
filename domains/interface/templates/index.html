@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Willow Population Node</title>
+    <style>
+        body {
+            background-color: #0f172a;
+            color: #e2e8f0;
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .network-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.2;
+            background-image: radial-gradient(#38bdf8 1px, transparent 1px);
+            background-size: 30px 30px;
+        }
+
+        .node-card {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid #38bdf8;
+            border-radius: 12px;
+            padding: 2rem;
+            width: 400px;
+            box-shadow: 0 0 20px rgba(56, 189, 248, 0.3);
+            text-align: center;
+            position: relative;
+            backdrop-filter: blur(5px);
+            transition: transform 0.3s ease;
+        }
+
+        .node-card:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 30px rgba(56, 189, 248, 0.5);
+        }
+
+        .node-avatar {
+            width: 80px;
+            height: 80px;
+            background: #0f172a;
+            border: 2px solid #38bdf8;
+            border-radius: 50%;
+            margin: 0 auto 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+        }
+
+        .node-id {
+            font-size: 0.8rem;
+            color: #94a3b8;
+            margin-bottom: 0.5rem;
+        }
+
+        .node-name {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #fff;
+            margin-bottom: 0.5rem;
+        }
+
+        .node-location {
+            color: #38bdf8;
+            font-size: 0.9rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .quote-box {
+            background: #0f172a;
+            padding: 1rem;
+            border-left: 4px solid #38bdf8;
+            text-align: left;
+            font-style: italic;
+            color: #cbd5e1;
+            min-height: 60px;
+        }
+
+        .refresh-btn {
+            margin-top: 1.5rem;
+            background: transparent;
+            border: 1px solid #38bdf8;
+            color: #38bdf8;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            border-radius: 4px;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+
+        .refresh-btn:hover {
+            background: #38bdf8;
+            color: #0f172a;
+        }
+
+        .connection-line {
+            position: absolute;
+            background: #38bdf8;
+            height: 1px;
+            width: 100px;
+            top: 50%;
+            z-index: -1;
+        }
+        .line-left { left: -100px; }
+        .line-right { right: -100px; }
+
+    </style>
+</head>
+<body>
+
+    <div class="network-bg"></div>
+
+    <div class="node-card" id="card">
+        <div class="connection-line line-left"></div>
+        <div class="connection-line line-right"></div>
+        
+        <div class="node-avatar">👤</div>
+        <div class="node-id" id="node-id">ID: Loading...</div>
+        <div class="node-name" id="node-name">Connecting...</div>
+        <div class="node-location" id="node-location">...</div>
+        
+        <div class="quote-box" id="quote-box">
+            "Establishing neural link to Population Database..."
+        </div>
+
+        <button class="refresh-btn" onclick="fetchCustomer()">Next Node</button>
+    </div>
+
+    <script>
+        async function fetchCustomer() {
+            const card = document.getElementById('card');
+            const nameEl = document.getElementById('node-name');
+            const locEl = document.getElementById('node-location');
+            const quoteEl = document.getElementById('quote-box');
+            const idEl = document.getElementById('node-id');
+
+            // Loading state
+            nameEl.style.opacity = 0.5;
+            
+            try {
+                const response = await fetch('/api/random-customer');
+                const data = await response.json();
+
+                if (data.error) {
+                    quoteEl.innerText = "Error: " + data.error;
+                    return;
+                }
+
+                nameEl.innerText = data.name;
+                locEl.innerText = data.location;
+                quoteEl.innerText = `"${data.quote}"`;
+                idEl.innerText = `ID: ${data.id.substring(0, 8)}...`;
+                
+                nameEl.style.opacity = 1;
+
+            } catch (e) {
+                quoteEl.innerText = "Connection lost to Bunny.";
+            }
+        }
+
+        // Initial load
+        fetchCustomer();
+    </script>
+</body>
+</html>
