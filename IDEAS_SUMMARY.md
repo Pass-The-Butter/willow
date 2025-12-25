@@ -487,6 +487,36 @@ Agent that watches the Grapevine and updates the Repo (Docs) and Confluence peri
 Use Neo4j ACLs to restrict knowledge access (e.g., Son = Read Only, Board = Full, Marketing = Branch). Allows multi-user interaction with one Brain.
 **Value**: Enables safe, company-wide adoption without data leaks.
 
+### 26. The Delegation Matrix (LLM Rota)
+
+**ID**: `idea-032`
+**Domain**: Strategy
+**Complexity**: Medium
+**Status**: New
+**Description**:
+Logic to route tasks to best LLM: Claude (Code), OpenAI (General), Groq (Speed/Audit), Gemini (Google Ecosystem).
+**Value**: Cost/Performance optimization.
+
+### 27. Local Graph Sync (The Backup Brain)
+
+**ID**: `idea-033`
+**Domain**: Infrastructure
+**Complexity**: High
+**Status**: New
+**Description**:
+Async agent to sync AuraDB to a local graph instance. Prevents "Cloud Amnesia" and saves costs.
+**Value**: Resilience and Data Ownership.
+
+### 28. MMOG 3D Interface ("The Game")
+
+**ID**: `idea-034`
+**Domain**: Interface
+**Complexity**: Very High
+**Status**: New
+**Description**:
+A 3D "Game Company" style interface for visualizing the agents and system status.
+**Value**: Engagement and "Wow" factor.
+
 ---
 
 ## 📊 IDEA STATISTICS

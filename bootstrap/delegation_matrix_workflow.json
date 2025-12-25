@@ -1,0 +1,181 @@
+{
+  "name": "The Delegation Matrix (LLM Router)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "matrix",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        100,
+        300
+      ],
+      "id": "trigger",
+      "name": "Task Input"
+    },
+    {
+      "parameters": {
+        "model": "llama3-70b-8192",
+        "prompt": "=ANALYZE INTENT: '{{ $json.body.prompt }}'\n\nReturn JSON: {\"intent\": \"CODE\" | \"CREATIVE\" | \"AUDIT\", \"reason\": \"...\"}",
+        "options": {
+          "jsonOutput": true
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlmGroq",
+      "typeVersion": 1,
+      "position": [
+        300,
+        300
+      ],
+      "id": "classifier",
+      "name": "Groq Classifier (Fast)",
+      "credentials": {
+        "groqApi": {
+          "id": "GROQ_CREDENTIAL_ID",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.intent }}",
+              "operation": "equal",
+              "value2": "CODE"
+            },
+            {
+              "value1": "={{ $json.intent }}",
+              "operation": "equal",
+              "value2": "CREATIVE"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [
+        500,
+        300
+      ],
+      "id": "router",
+      "name": "The Matrix Router"
+    },
+    {
+      "parameters": {
+        "model": "claude-3-opus-20240229",
+        "prompt": "={{ $json.body.prompt }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlmAnthropic",
+      "typeVersion": 1,
+      "position": [
+        700,
+        100
+      ],
+      "id": "claude-worker",
+      "name": "Claude (The Architect)",
+      "credentials": {
+        "anthropicApi": {
+          "id": "ANTHROPIC_CREDENTIAL_ID",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "gpt-4-turbo",
+        "prompt": "={{ $json.body.prompt }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlmOpenAi",
+      "typeVersion": 1,
+      "position": [
+        700,
+        300
+      ],
+      "id": "gpt-worker",
+      "name": "GPT-4 (The Generalist)",
+      "credentials": {
+        "openAiApi": {
+          "id": "OPENAI_CREDENTIAL_ID",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "llama3-70b-8192",
+        "prompt": "={{ $json.body.prompt }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlmGroq",
+      "typeVersion": 1,
+      "position": [
+        700,
+        500
+      ],
+      "id": "groq-worker",
+      "name": "Groq (The Auditor)",
+      "credentials": {
+        "groqApi": {
+          "id": "GROQ_CREDENTIAL_ID",
+          "name": "Groq account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Task Input": {
+      "main": [
+        [
+          {
+            "node": "Groq Classifier (Fast)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Classifier (Fast)": {
+      "main": [
+        [
+          {
+            "node": "The Matrix Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "The Matrix Router": {
+      "main": [
+        [
+          {
+            "node": "Claude (The Architect)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "GPT-4 (The Generalist)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Groq (The Auditor)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

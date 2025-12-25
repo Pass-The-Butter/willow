@@ -104,6 +104,13 @@
 - **Population Team**: Data generation, database management
 - **Core Team**: AuraDB, ontology, memory system
 - **DevOps Team** (New): CI/CD, Process Updates, Technology Scouting (Idea-030)
+- **Infrastructure Team**:
+  - **Agent**: "The Plumber" (Infrastructure Agent)
+  - **Focus**: Tailscale, Docker, Windows (Frank) Management
+  - **Mantra**: "Willow thinks, I built the pipes."
+- **Finance Team**:
+  - **Focus**: Token Tracking, Budget Management ($20/mo)
+  - **Tool**: `schemas/cost_center.sql`
 - **Grapevine Team**: Event Bus maintenance (N8N)
 
 **Responsibilities**:
