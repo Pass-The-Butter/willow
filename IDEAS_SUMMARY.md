@@ -517,6 +517,16 @@ Async agent to sync AuraDB to a local graph instance. Prevents "Cloud Amnesia" a
 A 3D "Game Company" style interface for visualizing the agents and system status.
 **Value**: Engagement and "Wow" factor.
 
+### 29. Safe Local SMTP Relay ("The Postman")
+
+**ID**: `idea-035`
+**Domain**: Communications
+**Complexity**: Medium
+**Status**: New
+**Description**:
+Deploy a local SMTP relay (e.g., Postfix/Exim) on Bunny. Allows N8N to send/receive system notices without exposing Willow to the public internet email grid.
+**Value**: Security & Autonomy.
+
 ---
 
 ## 📊 IDEA STATISTICS
