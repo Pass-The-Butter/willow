@@ -1,0 +1,35 @@
+version: "3.8"
+
+services:
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: agilemesh-n8n
+    restart: always
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=willow
+      - N8N_BASIC_AUTH_PASSWORD=willowdev123
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=agilemesh-postgres
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_DATABASE=n8n
+      - DB_POSTGRESDB_USER=n8n
+      - DB_POSTGRESDB_PASSWORD=willowdev123
+      - N8N_HOST=bunny.clouded-newton.ts.net
+      - WEBHOOK_URL=https://bunny.clouded-newton.ts.net/
+      - GENERIC_TIMEZONE=Europe/London
+      # Proxy Configuration (Fixes X-Forwarded-For Error)
+      - N8N_PROXY_HOPS=1
+      # Telegram Secrets
+      - TELEGRAM_BOT_TOKEN=8215056046:AAHWB34BIBIPwWhH7ogmGUY7G-cdZWPo04I
+      - TELEGRAM_CHAT_ID=780986984
+    volumes:
+      - ./n8n-data:/home/node/.n8n
+    networks:
+      - agilemesh
+
+networks:
+  agilemesh:
+    external: true
