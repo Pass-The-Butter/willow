@@ -7,6 +7,7 @@
 ## The Split
 
 ### 🖥️ Background Process (Ollama on RTX 3090 Ti)
+
 **Task**: WILL-009, WILL-010
 **Agent**: Local Ollama via Tailscale
 **Duration**: Hours to days (depending on batch size)
@@ -25,11 +26,13 @@ Generate NPCs:
 ```
 
 **Progress tracking**:
+
 ```sql
 SELECT COUNT(*) FROM customers;  -- Check progress anytime
 ```
 
 ### 🧠 Foreground Work (Claude + Peter)
+
 **Tasks**: WILL-012, WILL-013, WILL-024
 **Agent**: Claude Code (Sonnet 4.5)
 **Duration**: Few hours to days
@@ -57,35 +60,44 @@ Test with sample NPCs:
 ## Execution Timeline
 
 ### Day 1 (Session 1)
+
 **Morning**:
+
 - ✅ WILL-001: Reorganize files
 - ✅ WILL-003: Start Docker containers
 - ✅ WILL-007: SSH to bunny server
 - ✅ WILL-008: Design Population schema
 
 **Afternoon**:
+
 - 🟡 WILL-009: Start Population generator (background)
 - 🟡 WILL-012: Start designing Pet Claims ontology (foreground)
 
 **Evening**:
+
 - Population: 100K NPCs generated
 - Ontology: Customer → Pet → Quote schema complete
 
 ### Day 2
+
 **Morning**:
+
 - Population: 500K NPCs (still running)
 - 🟡 WILL-024: Validate Population schema against quote form
 - 🟡 WILL-013: Implement Customer Journey in AuraDB
 
 **Afternoon**:
+
 - Population: 2M NPCs
 - Test: Pull 100 random NPCs → Generate quotes → Validate
 
 **Evening**:
+
 - Population: 5M NPCs
 - Customer Journey complete and tested
 
 ### Day 3+
+
 - Population: 10M NPCs complete
 - Ontology: Production ready
 - Start MSSQL ingestion (WILL-014) if credentials available
@@ -95,9 +107,11 @@ Test with sample NPCs:
 ## Why This Works
 
 ### 1. **No Waiting**
+
 Don't need to wait for 10M NPCs to start building ontology. First 1K is enough to test schema.
 
 ### 2. **Fast Feedback Loop**
+
 ```
 Generate 1K NPCs
    ↓
@@ -111,30 +125,35 @@ Continue generating
 ```
 
 ### 3. **Resource Optimization**
+
 - **RTX 3090 Ti**: Grinding Faker generation (GPU/CPU intensive)
 - **Claude Sonnet 4.5**: Creative schema design (reasoning intensive)
 - **No resource conflict**
 
 ### 4. **Incremental Validation**
-| NPCs Generated | Validation Test |
-|----------------|-----------------|
-| 1,000 | Schema compatibility |
-| 10,000 | Quote form field coverage |
-| 100,000 | Quote generation at scale |
-| 1,000,000 | Claim journey simulation |
-| 10,000,000 | Stress test, production ready |
+
+| NPCs Generated | Validation Test               |
+| -------------- | ----------------------------- |
+| 1,000          | Schema compatibility          |
+| 10,000         | Quote form field coverage     |
+| 100,000        | Quote generation at scale     |
+| 1,000,000      | Claim journey simulation      |
+| 10,000,000     | Stress test, production ready |
 
 ---
 
 ## Task Dependencies (Updated)
 
 ### Before (Sequential)
+
 ```
 WILL-007 (SSH) → WILL-008 (Schema) → WILL-009 (Generator) → WILL-010 (10M) → WILL-012 (Ontology)
 ```
+
 **Problem**: Must wait for all 10M NPCs before starting ontology.
 
 ### After (Parallel)
+
 ```
 WILL-007 (SSH) → WILL-008 (Schema) → WILL-009 (Generator starts)
                                             ↓
@@ -144,6 +163,7 @@ WILL-007 (SSH) → WILL-008 (Schema) → WILL-009 (Generator starts)
                                             ↓
                                        Test with first 1K NPCs
 ```
+
 **Benefit**: Start ontology as soon as generator is running. Test incrementally.
 
 ---
@@ -151,6 +171,7 @@ WILL-007 (SSH) → WILL-008 (Schema) → WILL-009 (Generator starts)
 ## Communication Between Processes
 
 ### Population Generator → Ontology Design
+
 ```sql
 -- Claude queries Population DB to check progress
 SELECT COUNT(*) FROM customers;
@@ -161,6 +182,7 @@ SELECT * FROM customers ORDER BY RANDOM() LIMIT 100;
 ```
 
 ### Ontology → Population Validation
+
 ```cypher
 // In AuraDB, track which NPCs have been tested
 CREATE (npc:TestCustomer {
@@ -176,6 +198,7 @@ CREATE (npc:TestCustomer {
 ## Progress Tracking
 
 ### Population Generation (Postgres)
+
 ```bash
 # SSH to bunny server
 psql -U willow -d population
@@ -195,6 +218,7 @@ FROM customers;
 ```
 
 ### Ontology Development (AuraDB)
+
 ```cypher
 // Check node counts
 MATCH (n) RETURN labels(n)[0] as type, count(n) as count ORDER BY count DESC;
@@ -209,6 +233,7 @@ RETURN count(DISTINCT c) as customers_with_policies;
 ## Testing Strategy
 
 ### Phase 1: Schema Validation (First 100 NPCs)
+
 ```python
 # Pull 100 NPCs from Population DB
 customers = fetch_customers(limit=100)
@@ -232,6 +257,7 @@ for customer in customers:
 ```
 
 ### Phase 2: Quote Flow (First 1K NPCs)
+
 ```python
 # Generate quotes for 1K customers
 for customer in fetch_customers(limit=1000):
@@ -249,6 +275,7 @@ for customer in fetch_customers(limit=1000):
 ```
 
 ### Phase 3: Customer Journey (First 10K NPCs)
+
 ```python
 # Simulate full journey for 10K customers
 for customer in fetch_customers(limit=10000):
@@ -272,12 +299,14 @@ for customer in fetch_customers(limit=10000):
 ## Success Criteria
 
 ### Population Generation
+
 - ✅ 10M customers with valid UK data
 - ✅ 3M pets (30% ownership rate)
 - ✅ All fields match quote form requirements
 - ✅ Data distributions realistic (70% microchipped, etc.)
 
 ### Ontology Design
+
 - ✅ Customer Journey nodes created (Customer → Pet → Quote → Policy → Claim)
 - ✅ Relationships defined and tested
 - ✅ Can ingest 100 NPCs successfully
@@ -289,19 +318,25 @@ for customer in fetch_customers(limit=10000):
 ## Risk Mitigation
 
 ### Risk: Population generator crashes at 5M
+
 **Mitigation**:
+
 - Use tmux/screen for persistence
 - Checkpoint every 100K (save progress)
 - Resume from last checkpoint
 
 ### Risk: Ontology schema doesn't match Population data
+
 **Mitigation**:
+
 - Test with first 100 NPCs immediately
 - WILL-024 validates schema against quote form
 - Adjust generator before reaching 1M
 
 ### Risk: Quote form adds new required field
+
 **Mitigation**:
+
 - Population schema includes all current fields
 - WILL-024 validation catches gaps
 - Can backfill data if needed (UPDATE customers SET...)
@@ -311,6 +346,7 @@ for customer in fetch_customers(limit=10000):
 ## Commands to Start
 
 ### Start Population Generator (Background)
+
 ```bash
 # SSH to PC with RTX 3090 Ti
 ssh peter@desktop-via-tailscale
@@ -326,6 +362,7 @@ python3 generate_population.py --total 10000000 --batch 10000
 ```
 
 ### Start Ontology Design (Foreground)
+
 ```bash
 # In Willow project
 cd /Volumes/Delila/dev/Willow
@@ -343,6 +380,7 @@ nano schemas/pet-claims-ontology.cypher
 ## Monitoring Both Processes
 
 ### Dashboard Query
+
 ```bash
 # Check both at once
 echo "=== Population Progress ==="
@@ -353,7 +391,7 @@ python3 << EOF
 from neo4j import GraphDatabase
 import certifi, os
 os.environ['SSL_CERT_FILE'] = certifi.where()
-driver = GraphDatabase.driver("neo4j+s://e59298d2.databases.neo4j.io", auth=("neo4j", "c2U7h1mwvmYn2k2cr_Fp9EaUrZaLZdEQ3_Cawt6zvyU"))
+driver = GraphDatabase.driver("neo4j+s://e59298d2.databases.neo4j.io", auth=("neo4j", "<PASSWORD>"))
 with driver.session() as session:
     result = session.run("MATCH (n) WHERE n:Customer OR n:Pet OR n:Quote RETURN labels(n)[0] as type, count(n) as count")
     for record in result:
@@ -367,6 +405,7 @@ EOF
 ## Next Session Checklist
 
 **Before starting ontology work:**
+
 - [ ] WILL-001: Reorganize files ✓
 - [ ] WILL-003: Start containers ✓
 - [ ] WILL-007: SSH to bunny ✓
@@ -374,6 +413,7 @@ EOF
 - [ ] WILL-009: START Population generator (background)
 
 **Then immediately:**
+
 - [ ] WILL-012: Design Pet Claims ontology (foreground)
 - [ ] WILL-024: Validate first 100 NPCs against quote form
 

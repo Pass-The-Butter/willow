@@ -6,7 +6,8 @@ import re
 # AuraDB connection details
 URI = "neo4j+s://e59298d2.databases.neo4j.io"
 USER = "neo4j"
-PASSWORD = "c2U7h1mwvmYn2k2cr_Fp9EaUrZaLZdEQ3_Cawt6zvyU"
+import os
+PASSWORD = os.getenv("NEO4J_PASSWORD")
 
 HANDOFF_FILE = "/Volumes/Delila/dev/Willow/Willow_Persitant_HANDOFF_Memory.md"
 

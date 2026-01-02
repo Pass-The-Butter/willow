@@ -646,3 +646,40 @@ ORDER BY i.deadline
 **Created**: 2025-12-25
 **Next Review**: After critical items addressed
 **Maintained By**: Willow Brain (AuraDB)
+
+### 30. The "Gopher" Info Subagent
+
+**ID**: `idea-036`
+**Domain**: Agents
+**Complexity**: High
+**Status**: New
+**Description**:
+A general-purpose information retrieval agent ("Info Gopher"). It can burrow down any graph, vector store, local file, or remote source to collate answers.
+**Features**:
+- Can access ANY protocol/source.
+- Includes a re-ranker for results.
+- Abstracts augmented memory exponentialy.
+**Value**: Universal information gathering.
+
+### 31. Council of LLMs
+
+**ID**: `idea-037`
+**Domain**: Strategy
+**Complexity**: High
+**Status**: New
+**Description**:
+Engage Andrey Karpathy's "Council of LLMs" concept as an internal API service. Use subscriptions to all major providers (Pro/Trial) to get consensus or varied perspectives.
+**Value**: Higher quality decision making via ensemble methods.
+
+### 32. Slack Integration
+
+**ID**: `idea-038`
+**Domain**: Communications
+**Complexity**: Medium
+**Status**: New
+**Description**:
+Set up Slack workspace for the user to track progress ("losing track" currently).
+**Implementation**:
+- Create Slack Workspace.
+- Integrate with N8N/Willow for notifications.
+**Value**: Better visibility and organized communication.

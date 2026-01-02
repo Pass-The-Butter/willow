@@ -10,7 +10,7 @@ os.environ['SSL_CERT_FILE'] = certifi.where()
 # Neo4j Config
 URI = os.getenv('NEO4J_URI', "neo4j+s://e59298d2.databases.neo4j.io")
 USER = os.getenv('NEO4J_USER', "neo4j")
-PASS = os.getenv('NEO4J_PASSWORD', "c2U7h1mwvmYn2k2cr_Fp9EaUrZaLZdEQ3_Cawt6zvyU")
+PASS = os.getenv('NEO4J_PASSWORD')
 
 def backup_file(filepath, doc_name):
     # Read Content

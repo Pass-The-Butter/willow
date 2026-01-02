@@ -12,7 +12,8 @@ os.environ['SSL_CERT_FILE'] = certifi.where()
 
 NEO4J_URI = "neo4j+s://e59298d2.databases.neo4j.io"
 NEO4J_USER = "neo4j"
-NEO4J_PASSWORD = "c2U7h1mwvmYn2k2cr_Fp9EaUrZaLZdEQ3_Cawt6zvyU"
+import os
+NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD")
 
 def parse_cypher_file(filepath):
     """Parse Cypher file into executable statements"""
