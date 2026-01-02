@@ -186,27 +186,7 @@ print(f"Unread messages: {len(context['messages'])}")
 
 ---
 
----
-
-## Step 3a: Load Memory Context (The Beads)
-
-You are part of the **Meeseeks Squad**. Your work is tracked in the **Beads Graph**.
-
-```python
-from core.skills import manage_episodic_memory, manage_beads
-
-# 1. Log your session start
-session_id = "your-session-id"
-manage_episodic_memory.add_turn(session_id, "system", "Agent booting up...")
-
-# 2. Find Ready Work (Beads with no blockers)
-ready_tasks = manage_beads.search_ready_beads(limit=5)
-print(f"🛠️ Ready Tasks: {len(ready_tasks)}")
-for t in ready_tasks:
-    print(f"  - [{t['type']}] {t['title']} (ID: {t['id']})")
-```
-
----
+## Step 4: Read Updates
 
 ### Check Diary Entries
 
@@ -333,13 +313,6 @@ status = query_infrastructure.execute()
 print(f"Frank: {status['frank']}")
 print(f"Bunny: {status['bunny']}")
 print(f"AuraDB: {status['auradb']}")
-
-print("--- Universal Access (Tailscale) ---")
-base_url = "https://bunny.clouded-newton.ts.net"
-print(f"Dashboard: {base_url}/")
-print(f"N8N:       {base_url}/n8n")
-print(f"API:       {base_url}/api")
-print(f"Graphiti:  {base_url}/graphiti")
 ```
 
 ---
