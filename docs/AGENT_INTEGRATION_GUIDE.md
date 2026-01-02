@@ -3,6 +3,7 @@
 **How to work AS an agent in the Willow system**
 
 Anyone (human or machine) can be an agent:
+
 - You (Peter) can create tasks, update status, integrate with Jira
 - Claude (Arch-Willow) coordinates via graph
 - Ollama generates data in background
@@ -18,6 +19,7 @@ Anyone (human or machine) can be an agent:
 ## Pattern 1: You As An Agent (Human)
 
 ### Via GitHub (Easiest)
+
 ```bash
 1. Browse kanban: github.com/Pass-The-Butter/willow/projects
 2. Pick a task: WILL-002 "Fix autumn BrandAsset"
@@ -28,13 +30,14 @@ Anyone (human or machine) can be an agent:
 ```
 
 ### Via AuraDB Direct (Advanced)
+
 ```python
 # Query what you should work on
 from neo4j import GraphDatabase
 
 driver = GraphDatabase.driver(
     "neo4j+s://e59298d2.databases.neo4j.io",
-    auth=("neo4j", "PASSWORD")
+    auth=("neo4j", "<PASSWORD>")
 )
 
 with driver.session() as session:
@@ -68,6 +71,7 @@ with driver.session() as session:
 ```
 
 ### Via CLI Tool (To Be Built)
+
 ```bash
 # Future: Willow CLI
 willow tasks list --assigned-to peter --status todo
@@ -81,9 +85,11 @@ willow tasks complete WILL-002 "Fixed BrandAsset URL syntax"
 ## Pattern 2: Jira Integration
 
 ### Goal
+
 Sync Willow tasks ↔ Jira tickets bidirectionally
 
 ### Architecture
+
 ```
 Willow (AuraDB)
     ↕ (webhook/API)
@@ -115,14 +121,14 @@ const taskQuery = `
 
 // 3. Jira API: Create issue
 const jiraPayload = {
-  "fields": {
-    "project": { "key": "WILLOW" },
-    "summary": taskTitle,
-    "description": taskDescription,
-    "issuetype": { "name": "Task" },
-    "priority": { "name": mapPriority(taskPriority) },
-    "labels": ["willow", `task-${taskId}`]
-  }
+  fields: {
+    project: { key: "WILLOW" },
+    summary: taskTitle,
+    description: taskDescription,
+    issuetype: { name: "Task" },
+    priority: { name: mapPriority(taskPriority) },
+    labels: ["willow", `task-${taskId}`],
+  },
 };
 
 // 4. Update AuraDB: Store Jira ticket key
@@ -136,6 +142,7 @@ const updateQuery = `
 ```
 
 **Reverse sync** (Jira → Willow):
+
 ```javascript
 // Jira webhook on issue update
 // Triggers N8N workflow
@@ -145,6 +152,7 @@ const updateQuery = `
 ### Implementation Option B: Cloud Function
 
 **Deploy to Google Cloud Run**:
+
 ```python
 # sync_jira.py
 from flask import Flask, request
@@ -217,6 +225,7 @@ if __name__ == '__main__':
 ```
 
 **Deploy**:
+
 ```bash
 # Build container
 docker build -t willow-jira-sync .
@@ -242,12 +251,14 @@ Similar to Jira, but using Linear's GraphQL API:
 ```graphql
 # Create Linear issue from Willow task
 mutation CreateIssue($teamId: String!, $title: String!, $description: String!) {
-  issueCreate(input: {
-    teamId: $teamId
-    title: $title
-    description: $description
-    labelIds: ["willow-task"]
-  }) {
+  issueCreate(
+    input: {
+      teamId: $teamId
+      title: $title
+      description: $description
+      labelIds: ["willow-task"]
+    }
+  ) {
     success
     issue {
       id
@@ -265,43 +276,45 @@ mutation CreateIssue($teamId: String!, $title: String!, $description: String!) {
 ## Pattern 4: Slack Notifications
 
 ### When task created
+
 ```javascript
 // N8N workflow
 // Trigger: Task created in AuraDB
 // Action: Post to Slack
 
 const slackMessage = {
-  "channel": "#willow-tasks",
-  "text": `New task created: ${taskTitle}`,
-  "blocks": [
+  channel: "#willow-tasks",
+  text: `New task created: ${taskTitle}`,
+  blocks: [
     {
-      "type": "section",
-      "text": {
-        "type": "mrkdwn",
-        "text": `*${taskId}: ${taskTitle}*\n${taskDescription}\n\nPriority: ${priority}\nStatus: ${status}`
-      }
+      type: "section",
+      text: {
+        type: "mrkdwn",
+        text: `*${taskId}: ${taskTitle}*\n${taskDescription}\n\nPriority: ${priority}\nStatus: ${status}`,
+      },
     },
     {
-      "type": "actions",
-      "elements": [
+      type: "actions",
+      elements: [
         {
-          "type": "button",
-          "text": { "type": "plain_text", "text": "Claim Task" },
-          "action_id": "claim_task",
-          "value": taskId
+          type: "button",
+          text: { type: "plain_text", text: "Claim Task" },
+          action_id: "claim_task",
+          value: taskId,
         },
         {
-          "type": "button",
-          "text": { "type": "plain_text", "text": "View in Graph" },
-          "url": `https://console.neo4j.io/...`
-        }
-      ]
-    }
-  ]
+          type: "button",
+          text: { type: "plain_text", text: "View in Graph" },
+          url: `https://console.neo4j.io/...`,
+        },
+      ],
+    },
+  ],
 };
 ```
 
 ### Interactive button
+
 ```python
 # When user clicks "Claim Task" button
 @app.route('/slack/interactive', methods=['POST'])
@@ -332,6 +345,7 @@ def slack_interactive():
 ## Pattern 5: GitHub Codespaces Integration
 
 ### Automatic branch creation
+
 ```yaml
 # .github/workflows/task-to-branch.yml
 name: Task to Branch
@@ -376,6 +390,7 @@ jobs:
 ## Pattern 6: OpenAI Codex Integration
 
 ### AI pair programming on tasks
+
 ```python
 # codex_agent.py
 import openai
@@ -426,6 +441,7 @@ def codex_agent_work_on_task(task_id):
 ## Pattern 7: Email-Driven Task Creation
 
 ### Forward email → Create task
+
 ```python
 # email_to_task.py (N8N or Cloud Function)
 import imaplib
@@ -437,7 +453,7 @@ def check_inbox():
 
     # Connect to email
     mail = imaplib.IMAP4_SSL('imap.gmail.com')
-    mail.login('willow@company.com', PASSWORD)
+    mail.login('<EMAIL>', <PASSWORD>)
     mail.select('inbox')
 
     # Search for unread emails with [WILLOW-TASK] in subject
@@ -487,9 +503,10 @@ def check_inbox():
 ```
 
 **Usage**:
+
 ```
-From: peter@semanticarts.com
-To: willow@company.com
+From: <EMAIL>
+To: <EMAIL>
 Subject: [WILLOW-TASK] Add pricing engine for quotes
 
 Hi Willow,
@@ -513,6 +530,7 @@ Result: Creates WILL-025 automatically
 ## Pattern 8: Voice-Activated Task Management
 
 ### Alexa/Google Home skill
+
 ```python
 # alexa_skill.py
 from ask_sdk_core.skill_builder import SkillBuilder
@@ -572,11 +590,12 @@ lambda_handler = sb.lambda_handler()
 ## Pattern 9: Mobile App (Future)
 
 ### React Native app querying Willow
+
 ```javascript
 // WillowMobileApp.js
-import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, Button } from 'react-native';
-import axios from 'axios';
+import React, { useEffect, useState } from "react";
+import { View, Text, FlatList, Button } from "react-native";
+import axios from "axios";
 
 const WillowApp = () => {
   const [tasks, setTasks] = useState([]);
@@ -587,7 +606,9 @@ const WillowApp = () => {
 
   const fetchTasks = async () => {
     // Call Willow API
-    const response = await axios.get('https://willow-api.company.com/tasks/my-tasks');
+    const response = await axios.get(
+      "https://willow-api.company.com/tasks/my-tasks"
+    );
     setTasks(response.data.tasks);
   };
 
@@ -598,20 +619,24 @@ const WillowApp = () => {
 
   return (
     <View>
-      <Text style={{fontSize: 24, fontWeight: 'bold'}}>My Willow Tasks</Text>
+      <Text style={{ fontSize: 24, fontWeight: "bold" }}>My Willow Tasks</Text>
       <FlatList
         data={tasks}
-        renderItem={({item}) => (
-          <View style={{padding: 10, borderBottom: '1px solid #ccc'}}>
-            <Text style={{fontWeight: 'bold'}}>{item.id}: {item.title}</Text>
+        renderItem={({ item }) => (
+          <View style={{ padding: 10, borderBottom: "1px solid #ccc" }}>
+            <Text style={{ fontWeight: "bold" }}>
+              {item.id}: {item.title}
+            </Text>
             <Text>{item.description}</Text>
-            <Text>Priority: {item.priority} | Status: {item.status}</Text>
-            {item.status === 'todo' && (
+            <Text>
+              Priority: {item.priority} | Status: {item.status}
+            </Text>
+            {item.status === "todo" && (
               <Button title="Claim Task" onPress={() => claimTask(item.id)} />
             )}
           </View>
         )}
-        keyExtractor={item => item.id}
+        keyExtractor={(item) => item.id}
       />
     </View>
   );
@@ -643,6 +668,7 @@ const WillowApp = () => {
 ```
 
 **Example implementations:**
+
 - **GitHub**: Browse kanban → Create PR → GitHub Actions updates graph
 - **Jira**: Webhook creates ticket → Work in Jira → Webhook updates graph
 - **Email**: Send email → Task created → Work done → Reply sent
@@ -656,6 +682,7 @@ const WillowApp = () => {
 **What you asked**: "How can I do things as an agent? Like create a Jira ticket?"
 
 ### Option 1: Via N8N (Easiest)
+
 ```
 1. Create N8N workflow:
    - Trigger: Webhook (you send POST request)
@@ -677,6 +704,7 @@ const WillowApp = () => {
 ```
 
 ### Option 2: Via Python Script
+
 ```python
 # peter_create_task.py
 from neo4j import GraphDatabase
@@ -733,6 +761,7 @@ if __name__ == "__main__":
 ```
 
 ### Option 3: Via Willow CLI (To Be Built)
+
 ```bash
 # Future tool
 willow create task \
@@ -759,10 +788,10 @@ willow create task \
 ---
 
 **Next Steps:**
+
 1. Pick integration pattern (I recommend N8N for quick start)
 2. I'll build the webhook/workflow
 3. You can create tasks from anywhere (email, curl, browser, etc.)
 4. Jira/Linear/Slack get auto-updated
 
 **Want me to build one of these integrations now?** 🌳
-

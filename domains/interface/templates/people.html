@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Willow Population | People Viewer</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <style>
+      :root {
+        --primary: #667eea;
+        --secondary: #764ba2;
+        --bg: #f4f6f9;
+        --card-bg: #ffffff;
+        --text: #333;
+        --text-light: #666;
+        --success: #28a745;
+        --warning: #ffc107;
+        --danger: #dc3545;
+        --info: #17a2b8;
+      }
+
+      body {
+        font-family: "Segoe UI", Roboto, sans-serif;
+        background-color: var(--bg);
+        color: var(--text);
+        margin: 0;
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 1400px;
+        margin: 0 auto;
+      }
+
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+      }
+
+      .logo h1 {
+        font-size: 24px;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin: 0;
+      }
+
+      .logo span {
+        font-size: 14px;
+        color: var(--text-light);
+        display: block;
+      }
+
+      .card {
+        background: var(--card-bg);
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+      }
+
+      th,
+      td {
+        padding: 12px 15px;
+        text-align: left;
+        border-bottom: 1px solid #eee;
+      }
+
+      th {
+        background-color: #f8f9fa;
+        color: var(--text-light);
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 12px;
+        letter-spacing: 0.5px;
+      }
+
+      tr:hover {
+        background-color: #f1f1f1;
+      }
+
+      .status-dot {
+        height: 8px;
+        width: 8px;
+        background-color: #bbb;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 5px;
+      }
+
+      .status-active {
+        background-color: var(--success);
+      }
+
+      .btn-back {
+        text-decoration: none;
+        color: var(--text);
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-weight: 500;
+      }
+
+      .risk-score {
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: bold;
+      }
+      .risk-low {
+        background: #e6ffed;
+        color: #28a745;
+      }
+      .risk-med {
+        background: #fff8e1;
+        color: #f9a825;
+      }
+      .risk-high {
+        background: #ffebee;
+        color: #c62828;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <div class="logo">
+          <h1>
+            <a href="/board" class="btn-back"
+              ><i class="fas fa-arrow-left"></i> Dashboard</a
+            >
+          </h1>
+          <span>Population Viewer | Showing {{ count }} Random Records</span>
+        </div>
+        <div>
+          <button
+            onclick="window.location.reload()"
+            style="
+              padding: 10px 20px;
+              background: var(--primary);
+              color: white;
+              border: none;
+              border-radius: 8px;
+              cursor: pointer;
+            "
+          >
+            <i class="fas fa-sync"></i> Refresh Crowd
+          </button>
+        </div>
+      </header>
+
+      <div class="card">
+        {% if count == 0 %}
+        <div style="text-align: center; padding: 50px">
+          <i
+            class="fas fa-users"
+            style="font-size: 48px; color: #ddd; margin-bottom: 20px"
+          ></i>
+          <h3>It's quiet in here...</h3>
+          <p>No people found in the database. Time to start the generator!</p>
+        </div>
+        {% else %}
+        <table>
+          <thead>
+            <tr>
+              <th>Status</th>
+              <th>Name</th>
+              <th>Age</th>
+              <th>Policy Start</th>
+              <th>Risk Score</th>
+              <th>ID</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for person in people %}
+            <tr>
+              <td>
+                {% if person.active %}
+                <span class="status-dot status-active"></span> Active {% else %}
+                <span class="status-dot"></span> Inactive {% endif %}
+              </td>
+              <td style="font-weight: 500">
+                <i
+                  class="fas fa-user-circle"
+                  style="color: #ccc; margin-right: 8px"
+                ></i>
+                {{ person.first_name }} {{ person.last_name }}
+              </td>
+              <td>{{ person.age }}</td>
+              <td>{{ person.policy_start_date }}</td>
+              <td>
+                {% if person.risk_score < 0.3 %}
+                <span class="risk-score risk-low"
+                  >{{ "%.2f"|format(person.risk_score) }}</span
+                >
+                {% elif person.risk_score < 0.7 %}
+                <span class="risk-score risk-med"
+                  >{{ "%.2f"|format(person.risk_score) }}</span
+                >
+                {% else %}
+                <span class="risk-score risk-high"
+                  >{{ "%.2f"|format(person.risk_score) }}</span
+                >
+                {% endif %}
+              </td>
+              <td style="font-family: monospace; color: #888; font-size: 11px">
+                {{ person.id }}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% endif %}
+      </div>
+    </div>
+  </body>
+</html>

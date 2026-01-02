@@ -39,8 +39,27 @@ services:
     volumes:
       - ./core/skills:/app/skills:ro
       - ./domains:/app/domains:ro
+      - ./core/skills:/app/skills:ro
+      - ./domains:/app/domains:ro
 
-  # N8N workflow orchestration
+  # Flask Dashboard
+  dashboard:
+    build:
+      context: ./domains/interface
+    container_name: willow-dashboard
+    ports:
+      - "5001:5001"
+    environment:
+      - PG_HOST=population-db
+      - PG_PORT=5432
+      - PG_DB=${POSTGRES_DB}
+      - PG_USER=${POSTGRES_USER}
+      - PG_PASS=${POSTGRES_PASSWORD}
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+    networks:
+      - willow-network
+    depends_on:
+      - population-db
   n8n:
     image: n8nio/n8n:latest
     container_name: willow-n8n
@@ -74,6 +93,27 @@ services:
       - POSTGRES_DB=${POSTGRES_DB}
     volumes:
       - population_data:/var/lib/postgresql/data
+    networks:
+      - willow-network
+
+  # --- MEMORY SERVICES ---
+
+  # Zep Removed - Using Neo4j Native Episodic Memory
+  # zep: ...
+  # zep-nlp: ...
+
+  # Graphiti (Experiential Memory)
+  graphiti:
+    build:
+      context: ./infrastructure/memory/graphiti
+    container_name: willow-graphiti
+    ports:
+      - "8002:8000"
+    environment:
+      - NEO4J_URI=${NEO4J_URI}
+      - NEO4J_USER=${NEO4J_USER}
+      - NEO4J_PASSWORD=${NEO4J_PASSWORD}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
     networks:
       - willow-network
 

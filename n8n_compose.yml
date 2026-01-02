@@ -25,6 +25,8 @@ services:
       # Telegram Secrets
       - TELEGRAM_BOT_TOKEN=8215056046:AAHWB34BIBIPwWhH7ogmGUY7G-cdZWPo04I
       - TELEGRAM_CHAT_ID=780986984
+      # AI Capabilities
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
     volumes:
       - ./n8n-data:/home/node/.n8n
     networks:

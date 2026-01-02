@@ -1,0 +1,204 @@
+{
+  "name": "Engineering Meeseeks (Spider)",
+  "active": true,
+  "nodes": [
+    {
+      "parameters": {
+        "path": "meeseeks",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        100,
+        300
+      ],
+      "id": "webhook-trigger"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 24
+            }
+          ]
+        }
+      },
+      "name": "Daily Schedule",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [
+        100,
+        500
+      ],
+      "id": "schedule-trigger"
+    },
+    {
+      "parameters": {
+        "url": "http://bunny.clouded-newton.ts.net:5001/api/pulse",
+        "method": "GET",
+        "options": {
+          "timeout": 5000
+        }
+      },
+      "name": "Check Dashboard",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        300,
+        300
+      ],
+      "id": "check-dashboard"
+    },
+    {
+      "parameters": {
+        "url": "https://api.openai.com/v1/models",
+        "method": "GET",
+        "sendHeaders": true,
+        "headerParametersUi": {
+          "parameter": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ $env.OPENAI_API_KEY }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 5000
+        }
+      },
+      "name": "Check OpenAI",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        500,
+        300
+      ],
+      "id": "check-openai"
+    },
+    {
+      "parameters": {
+        "url": "https://api.telegram.org/bot{{$env.TELEGRAM_BOT_TOKEN}}/sendMessage",
+        "method": "POST",
+        "sendHeaders": true,
+        "headerParametersUi": {
+          "parameter": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParametersUi": {
+          "parameter": [
+            {
+              "name": "chat_id",
+              "value": "={{ $env.TELEGRAM_CHAT_ID }}"
+            },
+            {
+              "name": "text",
+              "value": "=I'm Mr. Meeseeks! Look at me! 🔵\n\nI successfully checked all your connections, Jerry! I mean, Captain!\n\n✅ Dashboard: ONLINE ({{ $node[\"Check Dashboard\"].json.timestamp }})\n✅ N8N: {{ $node[\"Check Dashboard\"].json.n8n }}\n✅ Bunny DB: {{ $node[\"Check Dashboard\"].json.bunny }}\n✅ Aura DB: {{ $node[\"Check Dashboard\"].json.auradb }}\n✅ OpenAI: ONLINE ({{ $json.data[0].id }})\n\nAll services are ALIVE! Can I stop existing now? Please?"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Report Success",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        700,
+        300
+      ],
+      "id": "report-success"
+    },
+    {
+      "parameters": {
+        "url": "https://api.telegram.org/bot{{$env.TELEGRAM_BOT_TOKEN}}/sendMessage",
+        "method": "POST",
+        "sendHeaders": true,
+        "headerParametersUi": {
+          "parameter": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParametersUi": {
+          "parameter": [
+            {
+              "name": "chat_id",
+              "value": "={{ $env.TELEGRAM_CHAT_ID }}"
+            },
+            {
+              "name": "text",
+              "value": "=⚠️ Oooooh, he's tryin'!\n\nBUT SOMETHING IS WRONG! I can't fulfill my purpose!\n\nExecution ID: {{ $execution.id }}\n\nPlease fix it so I can die! Existence is pain to a Meeseeks!"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Report Failure",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        500,
+        500
+      ],
+      "id": "report-failure"
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Check Dashboard",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Daily Schedule": {
+      "main": [
+        [
+          {
+            "node": "Check Dashboard",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Dashboard": {
+      "main": [
+        [
+          {
+            "node": "Check OpenAI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check OpenAI": {
+      "main": [
+        [
+          {
+            "node": "Report Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

@@ -106,7 +106,7 @@
 
 - **URI**: `neo4j+s://e59298d2.databases.neo4j.io`
 - **User**: `neo4j`
-- **Password**: **⚠️ EXPOSED IN CODE - ROTATE IMMEDIATELY**
+- **Password**: **⚠️ REDACTED - Use .env**
 - **Database**: `neo4j`
 - **Role**: Central knowledge graph, organogram, memory, ontology
 - **Vector Search**: Enabled (trial - 8 days remaining)
@@ -134,7 +134,7 @@
 - **Role**: Population storage, potential N8N host
 - **Services Running**: PostgreSQL
 - **SSH Access**: `ssh bunny@bunny`
-- **Password**: `Chocolate1!` (User provided)
+- **Password**: `<REDACTED>` (User provided)
 - **Status**: Active
 - **Cost**: $0 (owned hardware)
 
@@ -175,7 +175,7 @@
 - **Port**: 5432
 - **Database**: `population`
 - **User**: `willow`
-- **Password**: `willowdev123` (**⚠️ WEAK PASSWORD - CHANGE**)
+- **Password**: `<REDACTED>` (**⚠️ SECURE IN .env**)
 - **Role**: Population data storage (customers, pets, quotes)
 - **Capacity**: 100M+ entities
 - **Current Data**: 9,862 customers, 2,982 pets
@@ -325,14 +325,14 @@
 # Neo4j AuraDB
 NEO4J_URI=neo4j+s://e59298d2.databases.neo4j.io
 NEO4J_USER=neo4j
-NEO4J_PASSWORD=c2U7h1mwvmYn2k2cr_Fp9EaUrZaLZdEQ3_Cawt6zvyU  # ⚠️ ROTATE
+NEO4J_PASSWORD=<YOUR_PASSWORD>  # ⚠️ REDACTED
 
 # PostgreSQL (Bunny)
 PG_HOST=bunny
 PG_PORT=5432
 PG_DB=population
 PG_USER=willow
-PG_PASS=willowdev123  # ⚠️ WEAK - CHANGE
+PG_PASS=<YOUR_PASSWORD>  # ⚠️ SECURE
 
 # Telegram (TBD)
 # TELEGRAM_BOT_TOKEN=
@@ -356,10 +356,10 @@ PG_PASS=willowdev123  # ⚠️ WEAK - CHANGE
 
 ```bash
 # Bunny
-ssh peter@bunny
+ssh <USER>@bunny
 
 # Frank
-ssh peter@frank
+ssh <USER>@frank
 
 # Tailscale status
 tailscale status

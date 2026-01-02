@@ -10,21 +10,20 @@ from multiprocessing import Pool, cpu_count
 from datetime import datetime, timedelta
 
 # Configuration
-DB_HOST = "127.0.0.1" # Connect to Xeon Server (Localhost)
+DB_HOST = "bunny" # Connect to Xeon Server (via Tailscale)
 DB_PORT = "5432"
 DB_NAME = "population"
 DB_USER = "willow"
 DB_PASS = "willowdev123"
 
 # Ollama Configuration (Frank)
-# Ollama Configuration (Frank)
 OLLAMA_URL = "http://frank.clouded-newton.ts.net:11434/api/generate"
 OLLAMA_MODEL = "deepseek-r1:32b" # High reasoning model
-USE_LLM_FOR_QUOTES = True # Set to False for speed
+USE_LLM_FOR_QUOTES = False # Set to False for speed (Seed Mode)
 
-TARGET_COUNT = 100_000_000
+TARGET_COUNT = 500
 BATCH_SIZE = 100 # Reduced batch size when using LLM
-PROCESSES = 4 # Limit processes to avoid OOM on GPU if using LLM
+PROCESSES = 1 # Limit processes to avoid OOM on GPU if using LLM
 
 fake = Faker('en_GB') # Use UK Locale
 
@@ -141,7 +140,6 @@ def generate_batch(batch_id):
                 premium,
                 status,
                 created_at,
-                created_at,
                 valid_until,
                 quote_text # Added text
             ))
@@ -206,6 +204,36 @@ def main():
     pool.close()
     pool.join()
     print("✓ Generation complete.")
+    
+    # Audit Log to Neo4j
+    try:
+        from neo4j import GraphDatabase
+        # Load from env or use defaults (Rabbit hole: env vars not loaded here?)
+        # For now, hardcode or assume env is set.
+        NEO4J_URI = os.getenv("NEO4J_URI", "neo4j+s://205e612c.databases.neo4j.io")
+        NEO4J_USER = os.getenv("NEO4J_USER", "neo4j")
+        NEO4J_PASS = os.getenv("NEO4J_PASSWORD", "let-me-in") # Placeholder, usually in env
+        
+        # Checking if we have credible creds
+        if "let-me-in" in NEO4J_PASS:
+            print("⚠️ Skipping Audit Log: Neo4j Credentials missing in env.")
+        else:
+            driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASS))
+            with driver.session() as session:
+                session.run("""
+                    CREATE (e:Event:GenerationEvent {
+                        timestamp: datetime(),
+                        count: $count,
+                        target: 'Bunny',
+                        description: 'Generated synthetic population batch'
+                    })
+                """, count=TARGET_COUNT)
+            print("📝 Audit Logged to Brain.")
+            driver.close()
+    except Exception as e:
+        print(f"❌ Failed to log audit: {e}")
 
 if __name__ == "__main__":
+    from dotenv import load_dotenv
+    load_dotenv() # Load .env for Neo4j creds
     main()

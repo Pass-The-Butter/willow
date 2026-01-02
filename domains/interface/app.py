@@ -163,6 +163,43 @@ def pulse():
         "tasks_pending": 12 
     })
 
+@app.route('/people')
+def people_viewer():
+    """Simple People Viewer: Just peek at the crowd."""
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+        
+        # Simple fetch of 50 people
+        # In a real app we'd paginate, but this is a "peek"
+        query = """
+            SELECT id, first_name, last_name, age, risk_score, policy_start_date, active 
+            FROM people 
+            LIMIT 100;
+        """
+        cur.execute(query)
+        rows = cur.fetchall()
+        
+        people = []
+        for row in rows:
+            people.append({
+                "id": row[0],
+                "first_name": row[1],
+                "last_name": row[2],
+                "age": row[3],
+                "risk_score": row[4],
+                "policy_start_date": row[5],
+                "active": row[6]
+            })
+            
+        cur.close()
+        conn.close()
+        
+        return render_template('people.html', people=people, count=len(people))
+
+    except Exception as e:
+        return f"Error loading people: {str(e)}"
+
 @app.route('/api/random-customer')
 def random_customer():
     try:

@@ -11,6 +11,7 @@
 ## 🎯 OBJECTIVE
 
 Deploy full AgileMesh.net stack on Bunny server:
+
 1. ✅ N8N community edition (workflow automation)
 2. ✅ AgileMesh.net website (Peter's consulting business)
 3. ✅ Willow dashboard (live demo at /willow)
@@ -22,7 +23,8 @@ Deploy full AgileMesh.net stack on Bunny server:
 ## 🖥️ INFRASTRUCTURE DETAILS
 
 **Server**: Bunny
-- **SSH Access**: `ssh peter@bunny` (via Tailscale)
+
+- **SSH Access**: `ssh <USER>@bunny` (via Tailscale)
 - **OS**: Ubuntu
 - **RAM**: 128GB
 - **Network**: Tailscale mesh (`bunny` on tailnet)
@@ -30,6 +32,7 @@ Deploy full AgileMesh.net stack on Bunny server:
 - **Docker**: Installed (verify: `docker --version`)
 
 **Public Access Strategy**:
+
 - Cloudflare Tunnel (no open ports, secure, free)
 - Domain: agilemesh.net (Peter already owns)
 - URLs:
@@ -45,7 +48,7 @@ Deploy full AgileMesh.net stack on Bunny server:
 
 ```bash
 # SSH to Bunny
-ssh peter@bunny
+ssh <USER>@bunny
 
 # Create project directory
 mkdir -p ~/agilemesh
@@ -67,7 +70,7 @@ cloudflared version  # Verify installation
 Create `~/agilemesh/docker-compose.yml`:
 
 ```yaml
-version: '3.8'
+version: "3.8"
 
 services:
   # N8N Workflow Automation
@@ -177,7 +180,7 @@ NEO4J_USER=neo4j
 NEO4J_PASSWORD=COPY_FROM_WILLOW_ENV
 
 # Bunny PostgreSQL (Population DB)
-PG_PASS=willowdev123
+PG_PASS=<YOUR_PASSWORD>
 
 # Cloudflare Tunnel (will be filled after Step 5)
 CLOUDFLARE_TUNNEL_TOKEN=WILL_BE_GENERATED_IN_STEP_5
@@ -279,176 +282,231 @@ Create `~/agilemesh/website/templates/index.html`:
 ```html
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AgileMesh - Graph Databases Made Simple</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            line-height: 1.6;
-            color: #333;
-        }
-        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Oxygen, Ubuntu, Cantarell, sans-serif;
+        line-height: 1.6;
+        color: #333;
+      }
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px;
+      }
 
-        /* Hero Section */
-        .hero {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 100px 20px;
-            text-align: center;
-        }
-        .hero h1 { font-size: 3em; margin-bottom: 20px; }
-        .hero p { font-size: 1.5em; margin-bottom: 30px; opacity: 0.9; }
-        .cta-button {
-            display: inline-block;
-            padding: 15px 40px;
-            background: white;
-            color: #667eea;
-            text-decoration: none;
-            border-radius: 5px;
-            font-weight: bold;
-            margin: 10px;
-            transition: transform 0.2s;
-        }
-        .cta-button:hover { transform: translateY(-2px); }
+      /* Hero Section */
+      .hero {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 100px 20px;
+        text-align: center;
+      }
+      .hero h1 {
+        font-size: 3em;
+        margin-bottom: 20px;
+      }
+      .hero p {
+        font-size: 1.5em;
+        margin-bottom: 30px;
+        opacity: 0.9;
+      }
+      .cta-button {
+        display: inline-block;
+        padding: 15px 40px;
+        background: white;
+        color: #667eea;
+        text-decoration: none;
+        border-radius: 5px;
+        font-weight: bold;
+        margin: 10px;
+        transition: transform 0.2s;
+      }
+      .cta-button:hover {
+        transform: translateY(-2px);
+      }
 
-        /* Services Section */
-        .services {
-            padding: 80px 20px;
-            background: #f8f9fa;
-        }
-        .services h2 {
-            text-align: center;
-            font-size: 2.5em;
-            margin-bottom: 50px;
-        }
-        .service-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 30px;
-        }
-        .service-card {
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        .service-card h3 { color: #667eea; margin-bottom: 15px; }
+      /* Services Section */
+      .services {
+        padding: 80px 20px;
+        background: #f8f9fa;
+      }
+      .services h2 {
+        text-align: center;
+        font-size: 2.5em;
+        margin-bottom: 50px;
+      }
+      .service-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 30px;
+      }
+      .service-card {
+        background: white;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+      .service-card h3 {
+        color: #667eea;
+        margin-bottom: 15px;
+      }
 
-        /* Showcase Section */
-        .showcase {
-            padding: 80px 20px;
-            text-align: center;
-        }
-        .showcase h2 { font-size: 2.5em; margin-bottom: 30px; }
-        .showcase-box {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 60px;
-            border-radius: 15px;
-            margin: 30px 0;
-        }
-        .showcase-box h3 { font-size: 2em; margin-bottom: 20px; }
+      /* Showcase Section */
+      .showcase {
+        padding: 80px 20px;
+        text-align: center;
+      }
+      .showcase h2 {
+        font-size: 2.5em;
+        margin-bottom: 30px;
+      }
+      .showcase-box {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 60px;
+        border-radius: 15px;
+        margin: 30px 0;
+      }
+      .showcase-box h3 {
+        font-size: 2em;
+        margin-bottom: 20px;
+      }
 
-        /* Contact Section */
-        .contact {
-            padding: 80px 20px;
-            background: #f8f9fa;
-            text-align: center;
-        }
-        .contact h2 { font-size: 2.5em; margin-bottom: 30px; }
-        .contact-links a {
-            display: inline-block;
-            margin: 10px 20px;
-            color: #667eea;
-            text-decoration: none;
-            font-size: 1.2em;
-        }
+      /* Contact Section */
+      .contact {
+        padding: 80px 20px;
+        background: #f8f9fa;
+        text-align: center;
+      }
+      .contact h2 {
+        font-size: 2.5em;
+        margin-bottom: 30px;
+      }
+      .contact-links a {
+        display: inline-block;
+        margin: 10px 20px;
+        color: #667eea;
+        text-decoration: none;
+        font-size: 1.2em;
+      }
 
-        footer {
-            background: #333;
-            color: white;
-            text-align: center;
-            padding: 30px;
-        }
+      footer {
+        background: #333;
+        color: white;
+        text-align: center;
+        padding: 30px;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="hero">
-        <div class="container">
-            <h1>AgileMesh</h1>
-            <p>Graph Databases Made Simple</p>
-            <p style="font-size: 1.2em;">Helping companies adopt Neo4j & Tailscale<br>
-            The easier alternative to Data Mesh complexity</p>
-            <a href="mailto:peter@agilemesh.net" class="cta-button">Book Consultation</a>
-            <a href="/willow" class="cta-button">View Live Demo</a>
-        </div>
+      <div class="container">
+        <h1>AgileMesh</h1>
+        <p>Graph Databases Made Simple</p>
+        <p style="font-size: 1.2em;">
+          Helping companies adopt Neo4j & Tailscale<br />
+          The easier alternative to Data Mesh complexity
+        </p>
+        <a href="mailto:peter@agilemesh.net" class="cta-button"
+          >Book Consultation</a
+        >
+        <a href="/willow" class="cta-button">View Live Demo</a>
+      </div>
     </div>
 
     <div class="services">
-        <div class="container">
-            <h2>Services</h2>
-            <div class="service-grid">
-                <div class="service-card">
-                    <h3>🔗 Tailscale Mesh Networking</h3>
-                    <p>Secure, zero-config VPN for connecting your infrastructure. Simpler than traditional VPNs.</p>
-                </div>
-                <div class="service-card">
-                    <h3>📊 Neo4j Graph Databases</h3>
-                    <p>Implementation and consulting. Faster than SQL for relationship queries, easier than Data Mesh.</p>
-                </div>
-                <div class="service-card">
-                    <h3>🤖 AI-Powered Automation</h3>
-                    <p>Workflow automation using N8N + AI agents. Autonomous operations without manual overhead.</p>
-                </div>
-                <div class="service-card">
-                    <h3>💡 Data Mesh Alternative</h3>
-                    <p>Graph databases offer simpler architecture than Data Mesh with better performance for connected data.</p>
-                </div>
-            </div>
+      <div class="container">
+        <h2>Services</h2>
+        <div class="service-grid">
+          <div class="service-card">
+            <h3>🔗 Tailscale Mesh Networking</h3>
+            <p>
+              Secure, zero-config VPN for connecting your infrastructure.
+              Simpler than traditional VPNs.
+            </p>
+          </div>
+          <div class="service-card">
+            <h3>📊 Neo4j Graph Databases</h3>
+            <p>
+              Implementation and consulting. Faster than SQL for relationship
+              queries, easier than Data Mesh.
+            </p>
+          </div>
+          <div class="service-card">
+            <h3>🤖 AI-Powered Automation</h3>
+            <p>
+              Workflow automation using N8N + AI agents. Autonomous operations
+              without manual overhead.
+            </p>
+          </div>
+          <div class="service-card">
+            <h3>💡 Data Mesh Alternative</h3>
+            <p>
+              Graph databases offer simpler architecture than Data Mesh with
+              better performance for connected data.
+            </p>
+          </div>
         </div>
+      </div>
     </div>
 
     <div class="showcase">
-        <div class="container">
-            <h2>Case Study: Willow AI</h2>
-            <div class="showcase-box">
-                <h3>Live Demonstration</h3>
-                <p>Willow is an AI-native organization running entirely on graph databases and automated workflows.</p>
-                <p style="margin: 20px 0;">
-                    • Multi-agent coordination via Neo4j<br>
-                    • Autonomous task delegation<br>
-                    • Real-time metrics and monitoring<br>
-                    • 500-1000% ROI demonstrated
-                </p>
-                <a href="/willow" class="cta-button">View Live Dashboard →</a>
-            </div>
+      <div class="container">
+        <h2>Case Study: Willow AI</h2>
+        <div class="showcase-box">
+          <h3>Live Demonstration</h3>
+          <p>
+            Willow is an AI-native organization running entirely on graph
+            databases and automated workflows.
+          </p>
+          <p style="margin: 20px 0;">
+            • Multi-agent coordination via Neo4j<br />
+            • Autonomous task delegation<br />
+            • Real-time metrics and monitoring<br />
+            • 500-1000% ROI demonstrated
+          </p>
+          <a href="/willow" class="cta-button">View Live Dashboard →</a>
         </div>
+      </div>
     </div>
 
     <div class="contact">
-        <div class="container">
-            <h2>Get Started</h2>
-            <p style="font-size: 1.2em; margin-bottom: 30px;">
-                Ready to simplify your data architecture?
-            </p>
-            <div class="contact-links">
-                <a href="mailto:peter@agilemesh.net">📧 peter@agilemesh.net</a>
-                <a href="https://linkedin.com/in/YOUR_LINKEDIN" target="_blank">💼 LinkedIn</a>
-                <a href="https://linkedin.com/company/willow-ai" target="_blank">🤖 Willow AI</a>
-            </div>
+      <div class="container">
+        <h2>Get Started</h2>
+        <p style="font-size: 1.2em; margin-bottom: 30px;">
+          Ready to simplify your data architecture?
+        </p>
+        <div class="contact-links">
+          <a href="mailto:peter@agilemesh.net">📧 peter@agilemesh.net</a>
+          <a href="https://linkedin.com/in/YOUR_LINKEDIN" target="_blank"
+            >💼 LinkedIn</a
+          >
+          <a href="https://linkedin.com/company/willow-ai" target="_blank"
+            >🤖 Willow AI</a
+          >
         </div>
+      </div>
     </div>
 
     <footer>
-        <div class="container">
-            <p>&copy; 2025 AgileMesh. Graph Databases Made Simple.</p>
-            <p style="margin-top: 10px; opacity: 0.7;">Built by Peter [LastName] | Powered by Neo4j & Willow AI</p>
-        </div>
+      <div class="container">
+        <p>&copy; 2025 AgileMesh. Graph Databases Made Simple.</p>
+        <p style="margin-top: 10px; opacity: 0.7;">
+          Built by Peter [LastName] | Powered by Neo4j & Willow AI
+        </p>
+      </div>
     </footer>
-</body>
+  </body>
 </html>
 ```
 
@@ -529,6 +587,7 @@ curl https://n8n.agilemesh.net
 ```
 
 **Access**:
+
 - https://agilemesh.net - Public website
 - https://agilemesh.net/willow - Willow dashboard
 - https://n8n.agilemesh.net - N8N (login: willow / password from .env)
@@ -541,31 +600,32 @@ If Peter wants dedicated email (not just Cloudflare forwarding):
 
 ```yaml
 # Add to docker-compose.yml:
-  mailserver:
-    image: mailserver/docker-mailserver:latest
-    container_name: agilemesh-mail
-    hostname: mail.agilemesh.net
-    ports:
-      - "25:25"
-      - "587:587"
-      - "993:993"
-    volumes:
-      - ./mail/data:/var/mail
-      - ./mail/state:/var/mail-state
-      - ./mail/config:/tmp/docker-mailserver
-    environment:
-      - ENABLE_SPAMASSASSIN=1
-      - ENABLE_CLAMAV=1
-      - ENABLE_FAIL2BAN=1
-      - ONE_DIR=1
-    networks:
-      - agilemesh
+mailserver:
+  image: mailserver/docker-mailserver:latest
+  container_name: agilemesh-mail
+  hostname: mail.agilemesh.net
+  ports:
+    - "25:25"
+    - "587:587"
+    - "993:993"
+  volumes:
+    - ./mail/data:/var/mail
+    - ./mail/state:/var/mail-state
+    - ./mail/config:/tmp/docker-mailserver
+  environment:
+    - ENABLE_SPAMASSASSIN=1
+    - ENABLE_CLAMAV=1
+    - ENABLE_FAIL2BAN=1
+    - ONE_DIR=1
+  networks:
+    - agilemesh
 ```
 
 Then create accounts:
+
 ```bash
-docker exec -it agilemesh-mail setup email add willow@agilemesh.net PASSWORD
-docker exec -it agilemesh-mail setup email add peter@agilemesh.net PASSWORD
+docker exec -it agilemesh-mail setup email add willow@agilemesh.net <PASSWORD>
+docker exec -it agilemesh-mail setup email add peter@agilemesh.net <PASSWORD>
 ```
 
 ---
@@ -573,6 +633,7 @@ docker exec -it agilemesh-mail setup email add peter@agilemesh.net PASSWORD
 ## ✅ SUCCESS CRITERIA
 
 **Deployment successful when**:
+
 1. ✅ https://agilemesh.net loads (Peter's business site)
 2. ✅ https://agilemesh.net/willow shows live Willow dashboard
 3. ✅ https://n8n.agilemesh.net accessible (workflow automation)
@@ -601,8 +662,8 @@ Add health checks to monitor services:
 crontab -e
 
 # Add:
-*/5 * * * * curl -f https://agilemesh.net/health || echo "Website down" | mail -s "AgileMesh Alert" peter@agilemesh.net
-*/5 * * * * curl -f https://n8n.agilemesh.net || echo "N8N down" | mail -s "N8N Alert" peter@agilemesh.net
+*/5 * * * * curl -f https://agilemesh.net/health || echo "Website down" | mail -s "AgileMesh Alert" <EMAIL>
+*/5 * * * * curl -f https://n8n.agilemesh.net || echo "N8N down" | mail -s "N8N Alert" <EMAIL>
 ```
 
 ---
@@ -610,6 +671,7 @@ crontab -e
 ## 🆘 TROUBLESHOOTING
 
 **Website not loading**:
+
 ```bash
 docker compose logs website
 # Check for Python errors
@@ -618,6 +680,7 @@ docker compose restart website
 ```
 
 **N8N not accessible**:
+
 ```bash
 docker compose logs n8n
 # Check PostgreSQL connection
@@ -626,6 +689,7 @@ docker compose restart n8n
 ```
 
 **Cloudflare Tunnel issues**:
+
 ```bash
 docker compose logs cloudflared
 # Check tunnel status
@@ -638,6 +702,7 @@ cloudflared tunnel info agilemesh
 ## 📝 HANDOFF TO PM AGENT
 
 **When complete**:
+
 1. Create Linear task: "Deployment complete - verify public access"
 2. Assign to: Peter (for verification)
 3. Log to AuraDB diary:
@@ -647,6 +712,7 @@ cloudflared tunnel info agilemesh
    - Any issues encountered
 
 **Next tasks after deployment**:
+
 - Marketing Agent: Populate website content
 - Engineering Agent: Build N8N workflows
 - Peter: Create Willow LinkedIn account

@@ -23,7 +23,7 @@
     },
     {
       "parameters": {
-        "url": "http://100.125.131.66:5001/api/pulse",
+        "url": "http://bunny.clouded-newton.ts.net:5001/api/pulse",
         "method": "GET",
         "options": {
           "timeout": 5000
@@ -44,8 +44,8 @@
         "conditions": {
           "boolean": [
             {
-              "value1": "={{ $json.status_code }}",
-              "value2": "200"
+              "value1": "={{ $json.bunny }}",
+              "value2": "ONLINE"
             }
           ]
         }
@@ -62,7 +62,7 @@
     {
       "parameters": {
         "chatId": "={{ $env.TELEGRAM_CHAT_ID }}",
-        "text": "💓 System Heartbeat: ALIVE\nDashboard: {{ $json.timestamp }}\nN8N: {{ $json.n8n }}\nBunny: {{ $json.bunny }}",
+        "text": "=💓 System Heartbeat: ALIVE\nDashboard: {{ $json.timestamp }}\nN8N: {{ $json.n8n }}\nBunny: {{ $json.bunny }}",
         "additionalFields": {}
       },
       "name": "Telegram Success",
