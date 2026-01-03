@@ -527,6 +527,32 @@ A 3D "Game Company" style interface for visualizing the agents and system status
 Deploy a local SMTP relay (e.g., Postfix/Exim) on Bunny. Allows N8N to send/receive system notices without exposing Willow to the public internet email grid.
 **Value**: Security & Autonomy.
 
+### 30. Rent-a-Population (Population-as-a-Service)
+
+**ID**: `idea-036`
+**Domain**: Population
+**Complexity**: High
+**Status**: New
+**Description**:
+Evolution of the Population domain into a standalone SaaS. Allows other systems to "rent" a synthetic population with specific ontologies (e.g., Insurance, Banking, Social Media) for testing or simulation.
+**Value**: Scalability & ROI; creates an external revenue stream/utility beyond Willow.
+
+---
+
+## 🏗️ INFRASTRUCTURE STRATEGY: BARE METAL VS DOCKER
+
+**User Directive (2026-01-03):** The Xeon server (128GB RAM) is optimized for Population scale-up. We are considering Bare Metal for Postgres to maximize performance/reliability for the 100M+ entity milestone.
+
+### 1. Docker (Current)
+
+- **Pros**: Portability, dependency isolation (Postgis/Pgvector), instant "Rollback" via volume snapshots.
+- **Cons**: Slight I/O overhead (negligible on modern Linux kernels), network abstraction can complicate external access.
+
+### 2. Bare Metal (Proposed for Xeon)
+
+- **Pros**: Direct access to 128GB RAM (shm_max, HUGE Pages), zero-latency I/O (direct NVMe/SSD access), easier for "SaaS" exposure via standard systemd/networking.
+- **Decision**: For the "Rent-a-Population" scale-up, we will evaluate moving `postgres-population` to bare metal while keeping N8N/Zep in Docker.
+
 ---
 
 ## 📊 IDEA STATISTICS
@@ -656,12 +682,13 @@ ORDER BY i.deadline
 **Description**:
 An always-on Project Manager agent ("Pingu") responsible for system visibility and coordination.
 **Responsibilities**:
+
 - Monitor all project boards (Linear, Jira, Trello).
 - Report updates to Slack (`#project-updates`).
 - Manage "Free Trial Redundancy" (rotating services/keys).
 - Act as the "Town Crier" for the team.
-**Implementation**:
+  **Implementation**:
 - N8N workflow scheduled every 4 hours.
 - Integration with Slack API.
 - Read-access to all board APIs.
-**Value**: Solves "No visibility" issue.
+  **Value**: Solves "No visibility" issue.

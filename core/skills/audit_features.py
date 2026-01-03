@@ -11,6 +11,10 @@ import json
 import certifi
 from neo4j import GraphDatabase
 from datetime import datetime
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 
 class FeatureAuditor:

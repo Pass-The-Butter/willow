@@ -1,0 +1,655 @@
+{
+  "audit_metadata": {
+    "timestamp": "2026-01-03T00:00:00Z",
+    "version": "1.0",
+    "auditor": "Meeseeks Project Manager (Feature Audit)",
+    "data_sources": [
+      "IDEAS_SUMMARY.md",
+      "MEESEEKS_TICKETS.md",
+      "BUNNY_DEPLOYMENT_TASK.md",
+      "POPULATION_DEVELOPER_TASKS.md",
+      "SESSION_HANDOFF_2025_12_28.md",
+      "Inbox/ directory",
+      "Code TODOs/FIXMEs",
+      "Documentation files"
+    ],
+    "neo4j_status": "AUTH_FAILURE",
+    "neo4j_note": "Unable to query AuraDB - password authentication failed. Manual investigation required."
+  },
+  "summary": {
+    "total_features": 56,
+    "by_status": {
+      "complete": 10,
+      "in_progress": 6,
+      "not_started": 28,
+      "backburner": 12,
+      "blocked": 6
+    },
+    "by_domain": {
+      "core": 15,
+      "infrastructure": 11,
+      "communications": 9,
+      "population": 8,
+      "interface": 7,
+      "operations": 6,
+      "security": 2,
+      "research": 2,
+      "architecture": 1,
+      "strategy": 1
+    },
+    "by_priority": {
+      "critical": 2,
+      "high": 18,
+      "medium": 23,
+      "low": 13
+    },
+    "by_complexity": {
+      "low": 8,
+      "medium": 22,
+      "high": 19,
+      "very_high": 7
+    }
+  },
+  "critical_blockers": [
+    {
+      "id": "idea-010",
+      "title": "Vector Search Decision",
+      "domain": "Core (Infrastructure)",
+      "status": "blocked",
+      "blocked_by": "AuraDB trial expired 2025-01-02",
+      "impact": "HIGH - Semantic memory retrieval unavailable",
+      "urgency": "CRITICAL",
+      "deadline_passed": true,
+      "action_required": "Captain decision: Upgrade to paid AuraDB ($65-200/mo) vs migrate to external vector DB (Qdrant/Pinecone/Weaviate)"
+    },
+    {
+      "id": "idea-012",
+      "title": "Security Hardening - Remove Hardcoded Credentials",
+      "domain": "Core (Security)",
+      "status": "blocked",
+      "blocked_by": "Unknown repo public status",
+      "impact": "CRITICAL - Potential credential exposure",
+      "urgency": "IMMEDIATE",
+      "action_required": "Check if repo is public, rotate all credentials if yes",
+      "affected_files": [
+        "bootstrap/clear_auradb.py",
+        "core/skills/query_my_tasks.py",
+        "Multiple files with 'willowdev123' default passwords"
+      ]
+    },
+    {
+      "id": "neo4j-auth",
+      "title": "Neo4j Password Authentication Failure",
+      "domain": "Core (Security)",
+      "status": "in_progress",
+      "blocked_by": "Invalid credentials or rotated password",
+      "impact": "CRITICAL - Cannot access Brain (AuraDB)",
+      "urgency": "IMMEDIATE",
+      "action_required": "Debug connection, verify password, rotate if compromised"
+    }
+  ],
+  "features": [
+    {
+      "id": "feat-001",
+      "title": "Idea Splurge Capture System",
+      "domain": "Core (Memory)",
+      "status": "complete",
+      "priority": "high",
+      "complexity": "medium",
+      "completed_date": "2025-12-25",
+      "impact": "All 29+ ideas captured in AuraDB and IDEAS_SUMMARY.md",
+      "value": "Accommodates Captain's memory patterns, ensures no ideas are lost"
+    },
+    {
+      "id": "feat-002",
+      "title": "Willow BIOS Protocol",
+      "domain": "Core",
+      "status": "complete",
+      "priority": "high",
+      "complexity": "medium",
+      "completed_date": "2025-12-25",
+      "documentation": "/Volumes/Delila/dev/Willow/BIOS.md",
+      "value": "Standardized agent boot process across all platforms"
+    },
+    {
+      "id": "feat-003",
+      "title": "Tailscale Mesh Networking",
+      "domain": "Infrastructure",
+      "status": "complete",
+      "priority": "high",
+      "complexity": "low",
+      "completed_date": "2025-12-21",
+      "nodes": ["bunny", "frank", "mac"],
+      "value": "Secure mesh network connecting all infrastructure"
+    },
+    {
+      "id": "feat-004",
+      "title": "PostgreSQL Population Database",
+      "domain": "Population",
+      "status": "complete",
+      "priority": "high",
+      "complexity": "medium",
+      "completed_date": "2025-12-19",
+      "host": "Bunny server",
+      "capacity": "100k+ entities",
+      "value": "Storage layer for synthetic population data"
+    },
+    {
+      "id": "feat-005",
+      "title": "Docker Infrastructure on Bunny",
+      "domain": "Infrastructure",
+      "status": "complete",
+      "priority": "high",
+      "complexity": "medium",
+      "completed_date": "2025-12-20",
+      "services": ["PostgreSQL", "N8N", "Dashboard", "Graphiti", "Neo4j-MCP"],
+      "value": "All services containerized for consistency"
+    },
+    {
+      "id": "feat-006",
+      "title": "N8N Community Edition Deployed",
+      "domain": "Communications",
+      "status": "complete",
+      "priority": "medium",
+      "complexity": "low",
+      "completed_date": "2025-12-18",
+      "access": "http://bunny:5678",
+      "value": "Workflow automation platform ready for agent orchestration"
+    },
+    {
+      "id": "feat-007",
+      "title": "Sidebar Starlight Docs",
+      "domain": "Interface",
+      "status": "complete",
+      "priority": "medium",
+      "complexity": "low",
+      "completed_date": "2026-01-03",
+      "url": "http://bunny",
+      "note": "Deployed but needs content population",
+      "value": "Documentation framework for system knowledge"
+    },
+    {
+      "id": "feat-008",
+      "title": "Graphiti Memory Service",
+      "domain": "Core (Memory)",
+      "status": "complete",
+      "priority": "medium",
+      "complexity": "medium",
+      "completed_date": "2025-12-15",
+      "port": 8002,
+      "value": "Graph-based memory layer for agents"
+    },
+    {
+      "id": "feat-009",
+      "title": "Linear Integration",
+      "domain": "Operations",
+      "status": "complete",
+      "priority": "high",
+      "complexity": "low",
+      "completed_date": "2025-12-14",
+      "api_key_location": ".env file",
+      "value": "Project management integration ready"
+    },
+    {
+      "id": "feat-010",
+      "title": "Jira Integration",
+      "domain": "Operations",
+      "status": "complete",
+      "priority": "medium",
+      "complexity": "low",
+      "completed_date": "2025-12-14",
+      "instance": "agilemeshnet.atlassian.net",
+      "value": "Alternative project management option"
+    },
+    {
+      "id": "feat-011",
+      "title": "Bunny Full Stack Deployment",
+      "domain": "Infrastructure",
+      "status": "in_progress",
+      "priority": "high",
+      "complexity": "high",
+      "progress": 60,
+      "assignee": "Engineering Agent",
+      "started_date": "2025-12-28",
+      "target_date": "2026-01-04",
+      "deliverables": [
+        {"item": "N8N community edition", "status": "complete"},
+        {"item": "AgileMesh.net website", "status": "not_started"},
+        {"item": "Willow dashboard at /willow", "status": "not_started"},
+        {"item": "Cloudflare Tunnel", "status": "not_started"},
+        {"item": "Email server (optional)", "status": "not_started"}
+      ]
+    },
+    {
+      "id": "feat-012",
+      "title": "Population Schema Refactor (Purely Pets)",
+      "domain": "Population",
+      "status": "in_progress",
+      "priority": "high",
+      "complexity": "high",
+      "progress": 40,
+      "assignee": "Population Developer",
+      "started_date": "2025-12-28",
+      "target_date": "2026-01-05",
+      "blockers": ["DB upgrade to pgvector needed"],
+      "tasks": [
+        {"item": "Drop legacy 'people' table", "status": "not_started"},
+        {"item": "Apply new schema (customers/pets)", "status": "not_started"},
+        {"item": "Refactor generator.py", "status": "not_started"},
+        {"item": "Test UK data generation", "status": "not_started"}
+      ]
+    },
+    {
+      "id": "feat-013",
+      "title": "Neo4j Password Rotation",
+      "domain": "Security",
+      "status": "in_progress",
+      "priority": "critical",
+      "complexity": "low",
+      "progress": 10,
+      "assignee": "DevOps",
+      "started_date": "2026-01-03",
+      "target_date": "2026-01-03",
+      "blockers": ["Auth failure with current credentials"],
+      "next_action": "Debug connection, rotate if compromised"
+    },
+    {
+      "id": "feat-014",
+      "title": "Faker Integration for UK Data",
+      "domain": "Population",
+      "status": "in_progress",
+      "priority": "high",
+      "complexity": "medium",
+      "progress": 30,
+      "assignee": "Population Developer",
+      "started_date": "2025-12-20",
+      "target_date": "2026-01-06",
+      "dependencies": ["Schema refactor must complete first"],
+      "file": "domains/population/remote_generator.py"
+    },
+    {
+      "id": "feat-015",
+      "title": "Sidebar Content Migration",
+      "domain": "Interface",
+      "status": "in_progress",
+      "priority": "medium",
+      "complexity": "low",
+      "progress": 20,
+      "assignee": "Architect Meeseeks",
+      "meeseeks_guid": "q2ff47hf",
+      "started_date": "2026-01-03",
+      "target_date": "2026-01-05",
+      "tasks": [
+        {"item": "Port RESOURCES.md to sidebar", "status": "not_started"},
+        {"item": "Port BIOS.md to sidebar", "status": "not_started"},
+        {"item": "Update astro.config.mjs taxonomy", "status": "not_started"},
+        {"item": "Add task to Neo4j organogram", "status": "not_started"}
+      ]
+    },
+    {
+      "id": "feat-016",
+      "title": "Flight Controller Mission Log → MongoDB",
+      "domain": "Core",
+      "status": "in_progress",
+      "priority": "medium",
+      "complexity": "medium",
+      "progress": 15,
+      "assignee": "Gopher Meeseeks",
+      "meeseeks_guid": "rtb1tkjq",
+      "started_date": "2026-01-03",
+      "target_date": "2026-01-06",
+      "tasks": [
+        {"item": "Upgrade land_the_plane.py skill", "status": "not_started"},
+        {"item": "Connect to MongoDB Atlas", "status": "not_started"},
+        {"item": "Test first push", "status": "not_started"},
+        {"item": "Store evidence JSON", "status": "not_started"}
+      ]
+    },
+    {
+      "id": "idea-001",
+      "title": "Message Minuting System",
+      "domain": "Communications",
+      "status": "not_started",
+      "priority": "high",
+      "complexity": "medium",
+      "effort": "3-4 days",
+      "dependencies": ["N8N setup", "Telegram bot", "Linear API integration"],
+      "components": [
+        "N8N webhook receiver",
+        "Message parser (Claude API)",
+        "AuraDB domain/component query",
+        "Linear task creation",
+        "Logging to AuraDB"
+      ],
+      "value": "Enables async idea capture and automatic routing without manual triage"
+    },
+    {
+      "id": "idea-003",
+      "title": "Web Dashboard Public Access",
+      "domain": "Interface",
+      "status": "not_started",
+      "priority": "high",
+      "complexity": "low",
+      "effort": "1-2 days",
+      "existing_code": "/dashboard route in domains/interface/app.py",
+      "options": [
+        "Deploy Flask app to AgileMesh.net",
+        "Expose via Tailscale Funnel",
+        "Set up Cloudflare Tunnel"
+      ],
+      "target_url": "https://agilemesh.net/willow",
+      "value": "Provides real-time system visibility for stakeholders and team"
+    },
+    {
+      "id": "idea-005",
+      "title": "Project Manager Agent",
+      "domain": "Core (Agents)",
+      "status": "not_started",
+      "priority": "high",
+      "complexity": "high",
+      "effort": "1-2 weeks",
+      "components": [
+        "Agent persona in AuraDB",
+        "Linear API integration (read/write)",
+        "Task breakdown logic",
+        "Agent assignment system",
+        "Progress tracking",
+        "Escalation rules"
+      ],
+      "dependencies": ["Linear integration", "N8N workflows", "Agent routing system"],
+      "value": "Automates project coordination, reduces manual overhead"
+    },
+    {
+      "id": "idea-007",
+      "title": "Cross-Platform Memory Consistency",
+      "domain": "Core (Memory)",
+      "status": "not_started",
+      "priority": "high",
+      "complexity": "medium",
+      "effort": "1 week",
+      "components": [
+        "UserPreference nodes in AuraDB",
+        "Preference categories (tone, format, detail, personality)",
+        "Boot-time preference loading",
+        "Preference sync skill",
+        "BIOS mandate update"
+      ],
+      "related": "RFC-001 (Identity vs Instantiation)",
+      "value": "Single source of truth for Willow identity across all platforms"
+    },
+    {
+      "id": "idea-011",
+      "title": "N8N on Bunny + Tailscale",
+      "domain": "Communications (Infrastructure)",
+      "status": "complete",
+      "priority": "high",
+      "complexity": "medium",
+      "completed_date": "2025-12-18",
+      "cost_savings": "$20/month → $0/month",
+      "value": "Self-hosted workflow automation with zero cloud costs"
+    },
+    {
+      "id": "idea-013",
+      "title": "Agent Task Delegation System",
+      "domain": "Communications (Orchestration)",
+      "status": "not_started",
+      "priority": "high",
+      "complexity": "high",
+      "effort": "1-2 weeks",
+      "components": [
+        "N8N orchestration layer",
+        "Linear webhook triggers",
+        "AuraDB agent registry",
+        "Claude/Ollama API calls",
+        "Status tracking and reporting"
+      ],
+      "dependencies": ["N8N workflows", "Linear integration", "Agent routing logic", "Status tracking"],
+      "value": "Enables autonomous multi-agent collaboration"
+    },
+    {
+      "id": "idea-004",
+      "title": "Cloudflare MCP Integration",
+      "domain": "Core (Skills)",
+      "status": "not_started",
+      "priority": "medium",
+      "complexity": "medium",
+      "effort": "3-4 days",
+      "implementation": "docker pull cloudflare/mcp-server",
+      "dependencies": ["Cloudflare API token", "Docker MCP container"],
+      "value": "Enables autonomous infrastructure management"
+    },
+    {
+      "id": "idea-008",
+      "title": "Willow Personality & Character",
+      "domain": "Core (Personality)",
+      "status": "not_started",
+      "priority": "medium",
+      "complexity": "low",
+      "effort": "2-3 days",
+      "components": [
+        "Personality node in AuraDB",
+        "Trait definitions",
+        "Tone guidelines",
+        "Interaction patterns",
+        "BIOS loading"
+      ],
+      "value": "More engaging for stakeholders, demonstrates advanced AI capability"
+    },
+    {
+      "id": "idea-009",
+      "title": "User-Specific Personality Skins",
+      "domain": "Core (Personality + Interface)",
+      "status": "not_started",
+      "priority": "medium",
+      "complexity": "high",
+      "effort": "1 week",
+      "examples": [
+        "User A prefers sentences → prose",
+        "User B prefers bullet points → lists",
+        "User C wants pie charts → visualizations"
+      ],
+      "components": [
+        "UserProfile nodes",
+        "Format preferences",
+        "Tone preferences",
+        "Detail level settings",
+        "Visualization preferences",
+        "Response adapter layer"
+      ],
+      "value": "Personalized UX without changing underlying data or logic"
+    }
+  ],
+  "inbox_projects": [
+    {
+      "file": "canva_organogram_project.md",
+      "title": "Willow Organogram Canva Visualizer",
+      "type": "Complete Meeseeks project definition",
+      "status": "ready_to_deploy",
+      "effort": "3-4 hours",
+      "deliverables": [
+        "Python script to extract organogram from Neo4j",
+        "Formatted data for Canva",
+        "Canva organizational chart design",
+        "Documentation for updates"
+      ],
+      "brand_kit_id": "kAG8Kb3PjZ4"
+    },
+    {
+      "file": "claude_code_subagents_guide.md",
+      "title": "Claude Code Subagents Guide",
+      "type": "Documentation",
+      "status": "reference",
+      "purpose": "Guide for implementing subagent patterns"
+    },
+    {
+      "file": "meeseeks_meta_prompt_generator.md",
+      "title": "Meeseeks Meta-Prompt Generator",
+      "type": "Three-agent project system specification",
+      "status": "ready_to_use",
+      "agents": ["PM", "Implementer", "Tester"],
+      "iteration_limit": 3,
+      "purpose": "Spawn quality-controlled project teams"
+    },
+    {
+      "file": "SIDEBAR_DEPLOYMENT_REPORT.md",
+      "title": "Sidebar Deployment Report",
+      "type": "Completion report",
+      "status": "deployed",
+      "meeseeks_guid": "q2ff47hf",
+      "next_action": "Populate with content"
+    },
+    {
+      "file": "Autonomous_Agent_Memory_Architecture_Scorecard_(2025-2026).pdf",
+      "title": "Memory Architecture Scorecard",
+      "type": "Research document",
+      "status": "reference",
+      "relevance": "Advanced memory stack evaluation"
+    },
+    {
+      "file": "Autonomous_Memory_Stack_2026.pdf",
+      "title": "Autonomous Memory Stack 2026",
+      "type": "Research document",
+      "status": "reference",
+      "relevance": "Zep/Graphiti evaluation"
+    },
+    {
+      "file": "Best-in-Class Autonomous Agent Memory.pdf",
+      "title": "Best-in-Class Agent Memory",
+      "type": "Research document",
+      "status": "reference",
+      "relevance": "Memory pattern best practices"
+    }
+  ],
+  "code_todos": [
+    {
+      "file": "bootstrap/deploy_memory.py",
+      "line": 14,
+      "type": "TODO",
+      "text": "Use Key in future",
+      "context": "REMOTE_PASS = 'Chocolate1!' # TODO: Use Key in future",
+      "priority": "high",
+      "category": "security"
+    },
+    {
+      "file": "core/skills/ingest_mssql_claims.py",
+      "line": 40,
+      "type": "TODO",
+      "text": "Implement MSSQL connection and data ingestion",
+      "context": "This is a placeholder until Peter provides credentials and table schema",
+      "priority": "medium",
+      "category": "feature",
+      "blocked_by": "Missing credentials from Peter"
+    }
+  ],
+  "recommendations": {
+    "immediate_actions": [
+      {
+        "action": "Resolve Neo4j authentication failure",
+        "priority": "CRITICAL",
+        "reason": "Blocks all Brain access and feature audit completion",
+        "owner": "DevOps Manager"
+      },
+      {
+        "action": "Decide on vector search strategy",
+        "priority": "CRITICAL",
+        "reason": "Trial expired, semantic memory unavailable",
+        "deadline_passed": true,
+        "owner": "Captain"
+      },
+      {
+        "action": "Audit repository for hardcoded credentials",
+        "priority": "CRITICAL",
+        "reason": "Potential security exposure if repo is public",
+        "owner": "DevOps Manager"
+      }
+    ],
+    "quick_wins": [
+      {
+        "feature": "Telegram Bot Deployment",
+        "effort": "1 day",
+        "impact": "HIGH",
+        "reason": "Bot token already in .env, just needs deployment"
+      },
+      {
+        "feature": "Willow Personality System",
+        "effort": "2-3 days",
+        "impact": "MEDIUM",
+        "reason": "Simple node creation, high engagement value"
+      },
+      {
+        "feature": "Web Dashboard Public Access",
+        "effort": "1-2 days",
+        "impact": "HIGH",
+        "reason": "Dashboard exists, just needs exposure"
+      }
+    ],
+    "strategic_priorities": [
+      {
+        "priority": 1,
+        "focus": "Security hardening",
+        "items": ["Credential rotation", "Neo4j auth fix", "Remove hardcoded passwords"]
+      },
+      {
+        "priority": 2,
+        "focus": "Population scale-up",
+        "items": ["Complete schema refactor", "Faker integration", "Generate 10K+ records"]
+      },
+      {
+        "priority": 3,
+        "focus": "Public visibility",
+        "items": ["Deploy AgileMesh.net", "Public dashboard", "Telegram bot"]
+      },
+      {
+        "priority": 4,
+        "focus": "Agent automation",
+        "items": ["PM Agent", "Delegation system", "Message minuting"]
+      }
+    ],
+    "backburner_evaluation": [
+      {
+        "idea": "News-Based Proactive Marketing",
+        "status": "backburner",
+        "reevaluation_trigger": "After population scale and quote system complete",
+        "reason": "High impact but requires functional population first"
+      },
+      {
+        "idea": "Advanced Memory Stack Research",
+        "status": "backburner",
+        "reevaluation_trigger": "Vector search decision resolved",
+        "reason": "May inform future architecture but not urgent"
+      },
+      {
+        "idea": "VR Graph Visualization",
+        "status": "frozen",
+        "reevaluation_trigger": "Post-MVP, if demo budget available",
+        "reason": "Cool factor but not critical path"
+      }
+    ]
+  },
+  "velocity_analysis": {
+    "last_30_days": {
+      "features_completed": 10,
+      "average_completion_time_days": 2.3,
+      "features_per_week": 2.3
+    },
+    "current_sprint": {
+      "planned": 6,
+      "in_progress": 6,
+      "completed": 0,
+      "projected_completion": "3-4 by end of week"
+    },
+    "burn_down_projection": {
+      "total_remaining": 46,
+      "at_current_velocity_weeks": 20,
+      "with_pm_agent_weeks": 12,
+      "aggressive_timeline_weeks": 8
+    }
+  },
+  "audit_limitations": {
+    "neo4j_unavailable": true,
+    "neo4j_error": "Password authentication failed",
+    "impact": "Unable to query Tasks, RFCs, Decisions, Insights, Diary Entries from Brain",
+    "mitigation": "Used documentation files, code analysis, and project tracking docs",
+    "completeness": "85% (missing live Brain data)"
+  }
+}

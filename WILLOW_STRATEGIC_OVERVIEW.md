@@ -7,11 +7,11 @@
 
 ## 1. Executive Summary
 
-Willow is a **cloud-agnostic, agent-driven AI system** operating on a decentralized swarm architecture. Its primary goal is to simulate a functioning insurance ecosystem ("The Population") underpinned by a living knowledge graph ("The Brain").
+Willow is a **cloud-agnostic, agent-driven AI system** operating on a decentralized swarm architecture. Its primary goal is to run an autonomous **Insurance Factory Digital Twin** underpinned by a living knowledge graph ("The Brain").
 
-Unlike traditional apps, Willow is designed to be **autonomous**. Agents (Meeseeks Squad) wake up, read the `BIOS`, understand their role from the ontology, perform work (Research -> Plan -> Execute -> Verify), and log their actions back to the Brain.
+**Note on Decoupling**: Willow is fed by a separate SaaS-like product called **Population** (or "Rent-a-Population"). Population is a source of synthetic, precalculated people data. It acts as the "substrate" or "environment" for Willow, much like the people of a state are customers to a business but not part of the business's internal logic. Population has no knowledge of the Insurance Factory's business ontology.
 
-**Current Strategic Focus**: Aligning the synthetic population with the **Purely Pets Insurance** product model to enable realistic customer journey simulations.
+**Current Strategic Focus**: Aligning the external **Population** data stream with the **Purely Pets Insurance** input requirements to enable realistic customer journey simulations within Willow.
 
 ---
 
@@ -51,14 +51,15 @@ Willow uses a composite memory system to maintain state and context across sessi
 | **2. Beads**    | Neo4j (`:Bead`)             | **"What am I doing?"**<br>State management graph. Represents Tasks, Epics, and Decisions. A "Bead" is a unit of work that can be picked up by any agent.                           | `core.skills.manage_beads`           |
 | **3. Graphiti** | Docker Service (Bunny)      | **"What happened?"**<br>Experiential memory. Stores temporal events and entity interactions (e.g., "Deployed Database", "Fixed Bug") to allow semantic recall of past experiences. | `core.skills.client_graphiti`        |
 
-### C. The Population (Postgres on Bunny)
+### C. The Population (SaaS Feeder: "Rent-a-Population")
 
-The "Matter" of the simulation. A massive dataset of synthetic entities.
+The "Environment" of the simulation. A massive dataset of synthetic entities provided to Willow as an external service.
 
+- **Status**: External SaaS feeder; logically decoupled from Willow's business logic.
 - **Scale**: Target 100 Million entities.
-- **Schema**: Strictly typed relational data (Customers, Pets, Quotes).
-- **Tech**: Postgres 15 + `pgvector` for semantic personality search (e.g., "Find me 500 angry dog owners in London").
-- **Current Mandate**: Strict adherence to **Purely Pets Insurance** input fields.
+- **Schema**: Strictly typed relational data representing People/Pets (Simulation substrate).
+- **Tech**: Postgres 15 + `pgvector` stored on Bunny for high-performance feeding.
+- **Current Mandate**: Strict adherence to **Purely Pets Insurance** input fields (as requested by Willow).
 
 ### D. The Runtime (Docker on Bunny)
 
