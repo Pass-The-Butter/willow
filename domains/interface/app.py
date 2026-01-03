@@ -149,6 +149,11 @@ def docs_bios():
     except Exception as e:
         return f"Error loading BIOS: {e}"
 
+@app.route('/report/memory')
+def report_memory():
+    """Render the Dynamic Memory Architecture Report"""
+    return render_template('memory_report.html')
+
 @app.route('/api/pulse')
 def pulse():
     """Returns system status for the live dashboard."""
@@ -162,6 +167,72 @@ def pulse():
         "vector_indexes": 4, 
         "tasks_pending": 12 
     })
+
+@app.route('/api/organogram')
+def get_organogram_data():
+    """Fetches the project structure for the visual organogram."""
+    from neo4j import GraphDatabase
+    import certifi
+    
+    uri = os.getenv("NEO4J_URI")
+    user = os.getenv("NEO4J_USER")
+    password = os.getenv("NEO4J_PASSWORD")
+    
+    # Configure SSL
+    os.environ['SSL_CERT_FILE'] = certifi.where()
+    
+    driver = GraphDatabase.driver(uri, auth=(user, password))
+    
+    try:
+        with driver.session() as session:
+            # Query for domains, components, and tasks
+            result = session.run("""
+                MATCH (p:Project)-[:HAS_DOMAIN]->(d:Domain)
+                OPTIONAL MATCH (d)-[:HAS_COMPONENT]->(c:Component)
+                OPTIONAL MATCH (c)-[:HAS_TASK]->(t:Task)
+                RETURN p.name as project,
+                       d.name as domain,
+                       collect(DISTINCT c.name) as components,
+                       collect(DISTINCT {name: t.name, status: t.status}) as tasks
+            """)
+            
+            nodes = []
+            links = []
+            
+            # Root node
+            nodes.append({"id": "Willow", "label": "Willow", "type": "Project"})
+            
+            for record in result:
+                domain = record["domain"]
+                nodes.append({"id": domain, "label": domain, "type": "Domain"})
+                links.append({"source": "Willow", "target": domain})
+                
+                for comp in record["components"]:
+                    if comp:
+                        comp_id = f"{domain}_{comp}"
+                        nodes.append({"id": comp_id, "label": comp, "type": "Component"})
+                        links.append({"source": domain, "target": comp_id})
+                        
+                        # Add tasks for this component
+                        for task in record["tasks"]:
+                            # Note: This simple query might need more precision to link task to component
+                            # but for now we'll just link all tasks in record to the first component
+                            # or just show tasks under components.
+                            if task and task['name']:
+                                task_id = f"task_{task['name']}"
+                                nodes.append({"id": task_id, "label": task['name'], "type": "Task", "status": task['status']})
+                                links.append({"source": comp_id, "target": task_id})
+            
+            return jsonify({"nodes": nodes, "links": links})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        driver.close()
+
+@app.route('/organogram')
+def organogram():
+    """Render the Visual Organogram page"""
+    return render_template('organogram.html')
 
 @app.route('/people')
 def people_viewer():

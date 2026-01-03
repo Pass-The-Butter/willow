@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Willow Visual Organogram</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            background: #0f172a;
+            color: #fff;
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+        }
+        .node circle {
+            stroke: #fff;
+            stroke-width: 2px;
+        }
+        .node text {
+            font-size: 12px;
+            fill: #fff;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+        }
+        .link {
+            fill: none;
+            stroke: #334155;
+            stroke-width: 1.5px;
+        }
+        .controls {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 10;
+        }
+        .btn {
+            background: #38bdf8;
+            color: #0f172a;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            text-decoration: none;
+        }
+        .legend {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(30, 41, 59, 0.8);
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+        .legend-item { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
+        .color-box { width: 12px; height: 12px; border-radius: 50%; }
+        
+        /* Node Types */
+        .Project { fill: #f59e0b; }
+        .Domain { fill: #38bdf8; }
+        .Component { fill: #8b5cf6; }
+        .Task { fill: #10b981; }
+        .Task.Complete { fill: #10b981; }
+        .Task.In.Progress { fill: #f59e0b; }
+        .Task.Not.Started { fill: #64748b; }
+    </style>
+</head>
+<body>
+
+<div class="controls">
+    <a href="/board" class="btn">← Back to Board</a>
+    <h1 style="margin-top: 20px;">🏢 Visual Organogram</h1>
+</div>
+
+<div class="legend">
+    <div class="legend-item"><div class="color-box" style="background: #f59e0b;"></div> Project</div>
+    <div class="legend-item"><div class="color-box" style="background: #38bdf8;"></div> Domain</div>
+    <div class="legend-item"><div class="color-box" style="background: #8b5cf6;"></div> Component</div>
+    <div class="legend-item"><div class="color-box" style="background: #64748b;"></div> Task (Pending)</div>
+    <div class="legend-item"><div class="color-box" style="background: #10b981;"></div> Task (Complete)</div>
+</div>
+
+<svg id="svg"></svg>
+
+<script>
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+
+    const svg = d3.select("#svg")
+        .attr("width", width)
+        .attr("height", height);
+
+    const g = svg.append("g");
+
+    // Zoom behavior
+    svg.call(d3.zoom().on("zoom", (event) => {
+        g.attr("transform", event.transform);
+    }));
+
+    // Load data
+    d3.json("/api/organogram").then(data => {
+        const simulation = d3.forceSimulation(data.nodes)
+            .force("link", d3.forceLink(data.links).id(d => d.id).distance(100))
+            .force("charge", d3.forceManyBody().strength(-300))
+            .force("center", d3.forceCenter(width / 2, height / 2));
+
+        const link = g.append("g")
+            .attr("class", "links")
+            .selectAll("line")
+            .data(data.links)
+            .enter().append("line")
+            .attr("class", "link");
+
+        const node = g.append("g")
+            .attr("class", "nodes")
+            .selectAll("g")
+            .data(data.nodes)
+            .enter().append("g")
+            .call(d3.drag()
+                .on("start", dragstarted)
+                .on("drag", dragged)
+                .on("end", dragended));
+
+        node.append("circle")
+            .attr("r", d => d.type === 'Project' ? 12 : 8)
+            .attr("class", d => d.type);
+
+        node.append("text")
+            .attr("dx", 12)
+            .attr("dy", ".35em")
+            .text(d => d.label);
+
+        simulation.on("tick", () => {
+            link
+                .attr("x1", d => d.source.x)
+                .attr("y1", d => d.source.y)
+                .attr("x2", d => d.target.x)
+                .attr("y2", d => d.target.y);
+
+            node
+                .attr("transform", d => `translate(${d.x},${d.y})`);
+        });
+
+        function dragstarted(event, d) {
+            if (!event.active) simulation.alphaTarget(0.3).restart();
+            d.fx = d.x;
+            d.fy = d.y;
+        }
+
+        function dragged(event, d) {
+            d.fx = event.x;
+            d.fy = event.y;
+        }
+
+        function dragended(event, d) {
+            if (!event.active) simulation.alphaTarget(0);
+            d.fx = null;
+            d.fy = null;
+        }
+    });
+
+    window.addEventListener('resize', () => {
+        svg.attr("width", window.innerWidth).attr("height", window.innerHeight);
+    });
+</script>
+
+</body>
+</html>

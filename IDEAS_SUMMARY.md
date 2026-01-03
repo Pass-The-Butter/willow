@@ -646,3 +646,22 @@ ORDER BY i.deadline
 **Created**: 2025-12-25
 **Next Review**: After critical items addressed
 **Maintained By**: Willow Brain (AuraDB)
+
+### 33. "Pingu" - The Project Manager Agent
+
+**ID**: `idea-039`
+**Domain**: Operations
+**Complexity**: High
+**Status**: New
+**Description**:
+An always-on Project Manager agent ("Pingu") responsible for system visibility and coordination.
+**Responsibilities**:
+- Monitor all project boards (Linear, Jira, Trello).
+- Report updates to Slack (`#project-updates`).
+- Manage "Free Trial Redundancy" (rotating services/keys).
+- Act as the "Town Crier" for the team.
+**Implementation**:
+- N8N workflow scheduled every 4 hours.
+- Integration with Slack API.
+- Read-access to all board APIs.
+**Value**: Solves "No visibility" issue.

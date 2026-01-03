@@ -107,7 +107,13 @@
 - **URI**: `neo4j+s://e59298d2.databases.neo4j.io`
 - **User**: `neo4j`
 - **Password**: **⚠️ REDACTED - Use .env**
-- **Database**: `neo4j`
+- **Dashboard**: [http://bunny/board](http://bunny/board)
+- **Visual Organogram**: [http://bunny/organogram](http://bunny/organogram)
+- **Decision: Dashboard Selection**: [docs/DASHBOARD_SELECTION.md](docs/DASHBOARD_SELECTION.md)
+- **User Notes**: [USER_NOTES.md](USER_NOTES.md)
+
+### 📈 Current Sprint: Mission Control Consolidationgy
+
 - **Role**: Central knowledge graph, organogram, memory, ontology
 - **Vector Search**: Enabled (trial - 8 days remaining)
 - **Trial End Date**: ~2025-01-02
@@ -169,20 +175,16 @@
 
 ## 💾 DATABASES
 
-### PostgreSQL - "Bunny Database"
-
-- **Host**: `bunny` (via Tailscale)
-- **Port**: 5432
-- **Database**: `population`
-- **User**: `willow`
-- **Password**: `<REDACTED>` (**⚠️ SECURE IN .env**)
-- **Role**: Population data storage (customers, pets, quotes)
-- **Capacity**: 100M+ entities
 - **Current Data**: 9,862 customers, 2,982 pets
 - **Status**: Active
 - **Cost**: $0 (self-hosted on Bunny)
 
-### AuraDB (see Infrastructure section above)
+### MongoDB Atlas - "Artifact Store"
+
+- **URI**: `${MONGO_URI}` (see .env)
+- **Role**: Remote document store for mission artifacts, "Landing the Plane" reports, and diarized logs.
+- **Status**: Active
+- **Cost**: Free Tier
 
 ---
 

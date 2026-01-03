@@ -39,8 +39,7 @@ services:
     volumes:
       - ./core/skills:/app/skills:ro
       - ./domains:/app/domains:ro
-      - ./core/skills:/app/skills:ro
-      - ./domains:/app/domains:ro
+
 
   # Flask Dashboard
   dashboard:
@@ -56,10 +55,23 @@ services:
       - PG_USER=${POSTGRES_USER}
       - PG_PASS=${POSTGRES_PASSWORD}
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - NEO4J_URI=${NEO4J_URI}
+      - NEO4J_USER=${NEO4J_USER}
+      - NEO4J_PASSWORD=${NEO4J_PASSWORD}
     networks:
       - willow-network
     depends_on:
       - population-db
+
+  # Willow Sidebar (Astro Starlight)
+  sidebar:
+    build:
+      context: ./domains/sidebar
+    container_name: willow-sidebar
+    ports:
+      - "8080:80"
+    networks:
+      - willow-network
   n8n:
     image: n8nio/n8n:latest
     container_name: willow-n8n
@@ -69,6 +81,8 @@ services:
       - N8N_BASIC_AUTH_ACTIVE=${N8N_BASIC_AUTH_ACTIVE}
       - N8N_BASIC_AUTH_USER=${N8N_BASIC_AUTH_USER}
       - N8N_BASIC_AUTH_PASSWORD=${N8N_BASIC_AUTH_PASSWORD}
+      - N8N_PATH=/n8n/
+      - N8N_SECURE_COOKIE=false
     volumes:
       - n8n_data:/home/node/.n8n
     networks:
@@ -83,7 +97,7 @@ services:
 
   # Population Database (Postgres)
   population-db:
-    image: postgres:15-alpine
+    image: pgvector/pgvector:pg15
     container_name: willow-population-db
     ports:
       - "5432:5432"
@@ -114,6 +128,32 @@ services:
       - NEO4J_USER=${NEO4J_USER}
       - NEO4J_PASSWORD=${NEO4J_PASSWORD}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
+    networks:
+      - willow-network
+
+  # Willow Sidebar (Mission Control Documentation)
+  sidebar:
+    build:
+      context: ./domains/sidebar
+      dockerfile: Dockerfile
+    container_name: willow-sidebar
+    ports:
+      - "3000:80"
+    networks:
+      - willow-network
+
+  # Reverse Proxy (serving on Port 80)
+  proxy:
+    build:
+      context: ./infrastructure/proxy
+    container_name: willow-proxy
+    ports:
+      - "80:80"
+    depends_on:
+      - dashboard
+      - n8n
+      - graphiti
+      - sidebar
     networks:
       - willow-network
 

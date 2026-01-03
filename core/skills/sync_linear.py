@@ -75,7 +75,7 @@ def main():
     print(f"Syncing to Linear Team: {willow_team['name']} ({willow_team['id']})")
 
     # 2. Parse Tasks
-    task_file = '/Users/peter/.gemini/antigravity/brain/6310b00a-5063-4ce3-93f6-9ee7a0c1539b/task.md'
+    task_file = '/Users/peter/.gemini/antigravity/brain/39219902-ba43-4e68-a3c8-c185308c9096/task.md'
     if not os.path.exists(task_file):
          print(f"Task file not found: {task_file}")
          return

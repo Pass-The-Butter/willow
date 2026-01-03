@@ -1,3 +1,6 @@
+-- Enable pgvector extension
+CREATE EXTENSION IF NOT EXISTS vector;
+
 -- Reset Schema
 DROP TABLE IF EXISTS claims CASCADE;
 DROP TABLE IF EXISTS quotes CASCADE;

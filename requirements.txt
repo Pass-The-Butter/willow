@@ -5,3 +5,4 @@ psycopg2-binary==2.9.9
 Faker==22.5.1
 atlassian-python-api==4.0.7
 Flask==3.0.0
+pymongo==4.6.1

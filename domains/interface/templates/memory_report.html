@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Willow Memory Architecture Report</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+        background: #f4f4f9;
+        color: #333;
+        margin: 0;
+        padding: 20px;
+      }
+      .container {
+        max-width: 1000px;
+        margin: 0 auto;
+        background: white;
+        padding: 40px;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      }
+      h1,
+      h2,
+      h3 {
+        color: #1e293b;
+      }
+      .score-card {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 40px;
+        gap: 20px;
+      }
+      .card {
+        flex: 1;
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        padding: 20px;
+        border-radius: 8px;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      }
+      .card h3 {
+        margin-top: 0;
+        font-size: 1.1rem;
+        color: #64748b;
+      }
+      .card .score {
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: #3b82f6;
+      }
+      .card .desc {
+        font-size: 0.9rem;
+        color: #64748b;
+        margin-top: 10px;
+      }
+      .chart-container {
+        position: relative;
+        height: 300px;
+        width: 100%;
+        margin: 40px 0;
+      }
+      .section-text {
+        line-height: 1.6;
+        color: #475569;
+        margin-bottom: 20px;
+      }
+      code {
+        background: #f1f5f9;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-family: monospace;
+        color: #dc2626;
+      }
+      .alert {
+        background: #fff1f2;
+        border-left: 4px solid #f43f5e;
+        padding: 15px;
+        margin: 20px 0;
+        color: #881337;
+      }
+      .btn {
+        display: inline-block;
+        background: #3b82f6;
+        color: white;
+        padding: 10px 20px;
+        text-decoration: none;
+        border-radius: 6px;
+        margin-top: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <a
+        href="/board"
+        style="
+          text-decoration: none;
+          color: #64748b;
+          margin-bottom: 20px;
+          display: block;
+        "
+        >← Back to Board</a
+      >
+      <h1>🧠 Willow Memory Architecture Report</h1>
+      <p class="section-text">
+        **Generated**: Jan 2, 2026<br />
+        **Auditor**: Willow (Captain Agent)
+      </p>
+
+      <div class="alert">
+        <strong>CRITICAL FINDING:</strong> AuraDB Vector Search relies on a
+        trial that was expiring. Update: User has extended trial by 8 days. We
+        must use this time to cement the value or migrate.
+      </div>
+
+      <h2>🏆 Architecture Scorecard</h2>
+      <div class="score-card">
+        <div class="card">
+          <h3>Semantic (Knowledge)</h3>
+          <div class="score">8/10</div>
+          <div class="desc">
+            Neo4j AuraDB. Strong graph schema. Vector index active.
+          </div>
+        </div>
+        <div class="card">
+          <h3>Episodic (Experience)</h3>
+          <div class="score">6/10</div>
+          <div class="desc">
+            Graphiti (Self-hosted). Replaced Zep. Functional but underused.
+          </div>
+        </div>
+        <div class="card">
+          <h3>Procedural (Project)</h3>
+          <div class="score">5/10</div>
+          <div class="desc">
+            Markdown Files. Human-readable but sync to Graph is manual/broken.
+          </div>
+        </div>
+        <div class="card">
+          <h3>Working (Context)</h3>
+          <div class="score">9/10</div>
+          <div class="desc">
+            Agentic Context Loading (BIOS). Highly effective.
+          </div>
+        </div>
+      </div>
+
+      <h2>📊 Memory Composition</h2>
+      <div class="chart-container">
+        <canvas id="memoryChart"></canvas>
+      </div>
+
+      <h2>🛠️ detailed Technical Audit</h2>
+
+      <h3>1. Semantic Memory (The Graph)</h3>
+      <p class="section-text">
+        <strong>Implementation:</strong> Neo4j AuraDB (Cloud).<br />
+        <strong>Status:</strong> Our primary source of truth for the Organogram,
+        Tasks, and Domain structure. The ontology allows "hopping" from a
+        <code>Task</code> to a <code>Component</code> to a <code>Domain</code>.
+        <br /><strong>Strength:</strong> Vector indexing allows fuzzy recall
+        ("What did we decide about databases?"). <br /><strong
+          >Weakness:</strong
+        >
+        Relies on cloud credits/trial.
+      </p>
+
+      <h3>2. Episodic Memory (The Diary)</h3>
+      <p class="section-text">
+        <strong>Implementation:</strong> Graphiti (Python/NetworkX/LLM) running
+        on <code>bunny:8002</code>.<br />
+        <strong>Status:</strong> Intended to store time-series events ("Agent A
+        did X"). currently we mainly log to Markdown or Neo4j
+        <code>(:DiaryEntry)</code> directly. <br /><strong>Improvement:</strong>
+        We need to route <em>all</em> agent logs to Graphiti to build a true
+        timeline.
+      </p>
+
+      <h3>3. Procedural Memory (The Docs)</h3>
+      <p class="section-text">
+        <strong>Implementation:</strong> Markdown files
+        (<code>RESOURCES.md</code>, <code>BIOS.md</code>) in GIT.<br />
+        <strong>Status:</strong> These are the "rules" and "state". However, if
+        an agent updates Neo4j, <code>RESOURCES.md</code> doesn't magically
+        update. <br /><strong>Critical Gap:</strong> The "Sync" scripts
+        (<code>ingest_handoff.py</code>) are ad-hoc. valid state drift is a
+        risk.
+      </p>
+
+      <h2>🚀 Recommendations</h2>
+      <ol class="section-text">
+        <li>
+          <strong>Automate Sync:</strong> Create a GitHub Action or N8N listener
+          that updates Neo4j when <code>.md</code> files change, and vice versa.
+        </li>
+        <li>
+          <strong>Linear Integration:</strong> Move task memory strictly to
+          Linear (SaaS) + Neo4j (Shadow). Don't use Markdown for task tracking
+          anymore.
+        </li>
+        <li>
+          <strong>Dashboard Command Center:</strong> Implement the "Chat
+          Interface" you requested to accept raw input and triage it.
+        </li>
+      </ol>
+    </div>
+
+    <script>
+      const ctx = document.getElementById("memoryChart").getContext("2d");
+      new Chart(ctx, {
+        type: "radar",
+        data: {
+          labels: [
+            "Semantic (Graph)",
+            "Episodic (History)",
+            "Procedural (Docs)",
+            "Working (Context)",
+            "Task (Linear)",
+            "Sync Automation",
+          ],
+          datasets: [
+            {
+              label: "Score (out of 10)",
+              data: [8, 6, 5, 9, 9, 3],
+              fill: true,
+              backgroundColor: "rgba(59, 130, 246, 0.2)",
+              borderColor: "rgb(59, 130, 246)",
+              pointBackgroundColor: "rgb(59, 130, 246)",
+              pointBorderColor: "#fff",
+              pointHoverBackgroundColor: "#fff",
+              pointHoverBorderColor: "rgb(59, 130, 246)",
+            },
+          ],
+        },
+        options: {
+          scales: {
+            r: {
+              angleLines: { display: false },
+              suggestedMin: 0,
+              suggestedMax: 10,
+            },
+          },
+          responsive: true,
+          maintainAspectRatio: false,
+        },
+      });
+    </script>
+  </body>
+</html>
