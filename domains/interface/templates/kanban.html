@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Willow | Kanban Board</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --sidebar-bg: #1e293b;
+            --card-bg: #1e293b;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-primary: #6366f1;
+            --accent-secondary: #4f46e5;
+            --status-todo: #64748b;
+            --status-in-progress: #eab308;
+            --status-blocked: #ef4444;
+            --status-complete: #22c55e;
+            --status-frozen: #0ea5e9;
+            --font-main: 'Outfit', sans-serif;
+            --glass: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            overflow-x: hidden;
+        }
+
+        /* Sidebar Navigation */
+        .sidebar {
+            width: 260px;
+            background: var(--sidebar-bg);
+            border-right: 1px solid var(--glass-border);
+            padding: 2rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            position: fixed;
+            height: 100vh;
+        }
+
+        .logo {
+            font-weight: 700;
+            font-size: 1.5rem;
+            background: linear-gradient(135deg, #818cf8, #6366f1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .nav-links {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text-secondary);
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-weight: 500;
+        }
+
+        .nav-links a:hover, .nav-links a.active {
+            background: var(--glass);
+            color: var(--text-primary);
+            transform: translateX(5px);
+        }
+
+        .nav-links a.active {
+            background: var(--accent-primary);
+            color: white;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 260px;
+            flex: 1;
+            padding: 2rem 3rem;
+            max-width: 1600px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 3rem;
+        }
+
+        .header-title h1 {
+            font-size: 2.25rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .header-title p {
+            color: var(--text-secondary);
+        }
+
+        .kanban-board {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 2rem;
+            align-items: start;
+        }
+
+        .column {
+            background: rgba(30, 41, 59, 0.5);
+            border-radius: 1rem;
+            padding: 1.25rem;
+            min-height: 80vh;
+            border: 1px solid var(--glass-border);
+        }
+
+        .column-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding: 0 0.5rem;
+        }
+
+        .column-title {
+            font-size: 0.875rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .task-count {
+            background: var(--glass);
+            padding: 0.125rem 0.5rem;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .task-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .task-card {
+            background: var(--card-bg);
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .task-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
+            border-color: var(--accent-primary);
+        }
+
+        .task-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+        }
+
+        .card-todo::before { background-color: var(--status-todo); }
+        .card-in_progress::before { background-color: var(--status-in-progress); }
+        .card-blocked::before { background-color: var(--status-blocked); }
+        .card-complete::before { background-color: var(--status-complete); }
+
+        .task-title {
+            font-weight: 600;
+            font-size: 1rem;
+            margin-bottom: 0.75rem;
+            line-height: 1.4;
+        }
+
+        .task-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .task-footer {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--glass-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .assignee {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .avatar {
+            width: 24px;
+            height: 24px;
+            background: var(--accent-primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: white;
+            font-size: 0.65rem;
+        }
+
+        .priority-badge {
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.375rem;
+            font-weight: 600;
+            font-size: 0.65rem;
+            text-transform: uppercase;
+        }
+
+        .priority-critical { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+        .priority-high { background: rgba(249, 115, 22, 0.2); color: #fb923c; }
+        .priority-medium { background: rgba(99, 102, 241, 0.2); color: #818cf8; }
+        .priority-low { background: rgba(34, 197, 94, 0.2); color: #4ade80; }
+
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+            font-size: 1.5rem;
+            color: var(--text-secondary);
+        }
+
+        /* Micro-animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .task-card {
+            animation: fadeIn 0.5s ease backwards;
+        }
+    </style>
+</head>
+<body>
+    <nav class="sidebar">
+        <div class="logo">
+            <i class="fa-solid fa-brain"></i>
+            <span>WILLOW</span>
+        </div>
+        <ul class="nav-links">
+            <li><a href="/board"><i class="fa-solid fa-gauge"></i> Dashboard</a></li>
+            <li><a href="/kanban" class="active"><i class="fa-solid fa-layer-group"></i> Kanban</a></li>
+            <li><a href="/organogram"><i class="fa-solid fa-sitemap"></i> Organogram</a></li>
+            <li><a href="/people"><i class="fa-solid fa-users"></i> Population</a></li>
+            <li><a href="/report/memory"><i class="fa-solid fa-memory"></i> Memory</a></li>
+        </ul>
+    </nav>
+
+    <main class="main-content">
+        <header>
+            <div class="header-title">
+                <h1>Project Roadmap</h1>
+                <p>Real-time status of Willow's development sprints</p>
+            </div>
+            <div class="header-actions">
+                <button class="avatar" style="width:40px;height:40px;font-size:1rem" title="Captain">CW</button>
+            </div>
+        </header>
+
+        <div class="kanban-board" id="board">
+            <!-- Columns will be populated by JS -->
+            <div class="loading">
+                <i class="fa-solid fa-spinner fa-spin"></i> Initializing Brain...
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const statusMap = {
+            'todo': 'Todo',
+            'in_progress': 'Development',
+            'blocked': 'Blocked',
+            'complete': 'Done',
+            'frozen': 'Backlog'
+        };
+
+        const columns = ['todo', 'in_progress', 'blocked', 'complete'];
+
+        async function fetchTasks() {
+            try {
+                const response = await fetch('/api/kanban');
+                const data = await response.json();
+                renderBoard(data.tasks);
+            } catch (error) {
+                console.error('Error fetching tasks:', error);
+                document.getElementById('board').innerHTML = '<div class="loading">Failed to load tasks</div>';
+            }
+        }
+
+        function renderBoard(tasks) {
+            const board = document.getElementById('board');
+            board.innerHTML = '';
+
+            columns.forEach(status => {
+                const colTasks = tasks.filter(t => t.status === status);
+                
+                const colEl = document.createElement('div');
+                colEl.className = 'column';
+                colEl.innerHTML = `
+                    <div class="column-header">
+                        <div class="column-title">
+                            ${statusMap[status]}
+                            <span class="task-count">${colTasks.length}</span>
+                        </div>
+                        <i class="fa-solid fa-ellipsis-h" style="color:var(--text-secondary);cursor:pointer"></i>
+                    </div>
+                    <div class="task-list" id="list-${status}">
+                        ${colTasks.map((t, index) => `
+                            <div class="task-card card-${t.status}" style="animation-delay: ${index * 0.1}s">
+                                <div class="task-title">${t.title}</div>
+                                <div class="task-meta">
+                                    <span><i class="fa-solid fa-calendar-days"></i> ${t.date}</span>
+                                    <span class="priority-badge priority-${t.priority.toLowerCase()}">${t.priority}</span>
+                                </div>
+                                <div class="task-footer">
+                                    <div class="assignee">
+                                        <div class="avatar">${t.assignee.substring(0, 2).toUpperCase()}</div>
+                                        <span>${t.assignee}</span>
+                                    </div>
+                                    <i class="fa-solid fa-circle-check" style="${t.status === 'complete' ? 'color:var(--status-complete)' : 'color:var(--glass-border)'}"></i>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                board.appendChild(colEl);
+            });
+        }
+
+        fetchTasks();
+        // Refresh every 30 seconds
+        setInterval(fetchTasks, 30000);
+    </script>
+</body>
+</html>

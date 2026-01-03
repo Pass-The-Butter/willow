@@ -18,9 +18,9 @@
 **Current Status**:
 
 - ✅ Infrastructure operational (AuraDB, Bunny, Frank, Tailscale)
-- ✅ Population database (9,862 customers, 2,982 pets)
-- ✅ Interface domain complete (dashboard, quote form)
-- 🔄 Communications domain in progress
+- ✅ Population database (5,100+ entities, scaling to 100M)
+- ✅ Interface domain complete (Dashboard, People Explorer)
+- 🔄 Communications domain in progress (N8N Tunnels → Tailscale Funnel)
 - 🔄 Delegation system (this document establishes it)
 
 ---
@@ -100,15 +100,17 @@
 
 **Teams**:
 
-- **Interface Team**: Web dashboards, APIs, UX
+- **Interface Team**:
+  - **Agent**: "The Clerk" (Visualization Specialist)
+  - **Focus**: Web dashboards, People Explorer, APIs, UX
 - **Population Team**: Data generation, database management
 - **Core Team**: AuraDB, ontology, memory system
 - **DevOps Team** (New): CI/CD, Process Updates, Technology Scouting (Idea-030)
 - **Infrastructure Team**:
   - **Agent**: "The Plumber" (Infrastructure Agent)
   - **Focus**: Tailscale, Docker, Windows (Frank) Management
-  - **Mantra**: "Willow thinks, I built the pipes."
 - **Finance Team**:
+  - **Agent**: "The Auditor" (CFO)
   - **Focus**: Token Tracking, Budget Management ($20/mo)
   - **Tool**: `schemas/cost_center.sql`
 - **Grapevine Team**: Event Bus maintenance (N8N)

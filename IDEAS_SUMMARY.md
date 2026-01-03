@@ -537,6 +537,16 @@ Deploy a local SMTP relay (e.g., Postfix/Exim) on Bunny. Allows N8N to send/rece
 Evolution of the Population domain into a standalone SaaS. Allows other systems to "rent" a synthetic population with specific ontologies (e.g., Insurance, Banking, Social Media) for testing or simulation.
 **Value**: Scalability & ROI; creates an external revenue stream/utility beyond Willow.
 
+### 31. The Clerk (Visualization Agent)
+
+**ID**: `agent-clerk`
+**Domain**: Interface
+**Complexity**: Low
+**Status**: Active
+**Description**:
+Specialized agent ("The Clerk") responsible for the Willow Dashboard and People Explorer. Automates the creation of new views (e.g., Fraud Rings, Customer 360) as the ontology expands.
+**Value**: Rapid iteration on user-facing features without manual coding.
+
 ---
 
 ## 🏗️ INFRASTRUCTURE STRATEGY: BARE METAL VS DOCKER

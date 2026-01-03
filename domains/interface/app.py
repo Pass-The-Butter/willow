@@ -168,6 +168,33 @@ def pulse():
         "tasks_pending": 12 
     })
 
+@app.route('/api/metrics')
+def get_metrics():
+    """Returns dynamic counts from the population database."""
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+        
+        cur.execute("SELECT COUNT(*) FROM people;")
+        people_count = cur.fetchone()[0]
+        
+        cur.execute("SELECT COUNT(*) FROM quotes WHERE status = 'ISSUED';")
+        active_policies = cur.fetchone()[0]
+        
+        cur.execute("SELECT COUNT(*) FROM claims;")
+        claims_count = cur.fetchone()[0]
+        
+        cur.close()
+        conn.close()
+        
+        return jsonify({
+            "people": people_count,
+            "policies": active_policies,
+            "claims": claims_count
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 @app.route('/api/organogram')
 def get_organogram_data():
     """Fetches the project structure for the visual organogram."""
@@ -233,6 +260,57 @@ def get_organogram_data():
 def organogram():
     """Render the Visual Organogram page"""
     return render_template('organogram.html')
+
+@app.route('/kanban')
+def kanban():
+    """Render the Visual Kanban Board page"""
+    return render_template('kanban.html')
+
+@app.route('/api/kanban')
+def get_kanban_data():
+    """Fetches tasks for the Kanban board from AuraDB."""
+    from neo4j import GraphDatabase
+    import certifi
+    
+    uri = os.getenv("NEO4J_URI")
+    user = os.getenv("NEO4J_USER")
+    password = os.getenv("NEO4J_PASSWORD")
+    
+    os.environ['SSL_CERT_FILE'] = certifi.where()
+    
+    driver = GraphDatabase.driver(uri, auth=(user, password))
+    
+    try:
+        with driver.session() as session:
+            result = session.run("""
+                MATCH (t:Task)
+                RETURN t.id as id, 
+                       t.title as title, 
+                       t.description as description, 
+                       t.status as status, 
+                       t.priority as priority, 
+                       t.assigned_to as assigned_to,
+                       t.created_at as created_at
+                ORDER BY t.priority DESC
+            """)
+            
+            tasks = []
+            for record in result:
+                tasks.append({
+                    "id": record["id"],
+                    "title": record["title"],
+                    "description": record["description"],
+                    "status": record["status"].lower().replace(' ', '_'), # Normalize status
+                    "priority": record["priority"],
+                    "assignee": record["assigned_to"],
+                    "date": record["created_at"].strftime('%d %b') if record["created_at"] else "N/A"
+                })
+            
+            return jsonify({"tasks": tasks})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        driver.close()
 
 @app.route('/people')
 def people_viewer():

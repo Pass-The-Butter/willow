@@ -311,20 +311,20 @@
           "
         >
           <div>
-            <h3 style="font-size: 32px; margin: 0; color: var(--primary)">
-              9,862
+            <h3 id="metric-people" style="font-size: 32px; margin: 0; color: var(--primary)">
+              --
             </h3>
-            <p style="color: var(--text-light); margin: 0">Customers</p>
+            <p style="color: var(--text-light); margin: 0">Population</p>
           </div>
           <div>
-            <h3 style="font-size: 32px; margin: 0; color: var(--secondary)">
-              2,982
+            <h3 id="metric-policies" style="font-size: 32px; margin: 0; color: var(--secondary)">
+              --
             </h3>
-            <p style="color: var(--text-light); margin: 0">Pets Insured</p>
+            <p style="color: var(--text-light); margin: 0">Active Policies</p>
           </div>
           <div>
-            <h3 style="font-size: 32px; margin: 0; color: var(--success)">4</h3>
-            <p style="color: var(--text-light); margin: 0">Vector Indexes</p>
+            <h3 id="metric-claims" style="font-size: 32px; margin: 0; color: var(--success)">--</h3>
+            <p style="color: var(--text-light); margin: 0">Claims Processed</p>
           </div>
         </div>
       </div>
@@ -349,6 +349,16 @@
                 }
             })
             .catch(err => console.error("Pulse missed:", err));
+
+        // Update Population Metrics
+        fetch('/api/metrics')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('metric-people').innerText = data.people.toLocaleString();
+                document.getElementById('metric-policies').innerText = data.policies.toLocaleString();
+                document.getElementById('metric-claims').innerText = data.claims.toLocaleString();
+            })
+            .catch(err => console.error("Metrics failed:", err));
       }
 
       function updateStatus(elementId, status) {

@@ -108,6 +108,7 @@
 - **User**: `neo4j`
 - **Password**: **⚠️ REDACTED - Use .env**
 - **Dashboard**: [http://bunny/board](http://bunny/board)
+- **People Explorer**: [http://bunny/board/people](http://bunny/board/people)
 - **Visual Organogram**: [http://bunny/organogram](http://bunny/organogram)
 - **Decision: Dashboard Selection**: [docs/DASHBOARD_SELECTION.md](docs/DASHBOARD_SELECTION.md)
 - **User Notes**: [USER_NOTES.md](USER_NOTES.md)
@@ -175,9 +176,14 @@
 
 ## 💾 DATABASES
 
-- **Current Data**: 9,862 customers, 2,982 pets
+- **Current Data**: 5,100 people, 10,060 quotes, 2,801 claims
 - **Status**: Active
 - **Cost**: $0 (self-hosted on Bunny)
+
+### 👥 People Explorer (The Clerk)
+
+- **URL**: [http://bunny/board/people](http://bunny/board/people)
+- **Status**: Live
 
 ### MongoDB Atlas - "Artifact Store"
 

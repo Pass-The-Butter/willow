@@ -41,6 +41,10 @@ from typing import Optional, List, Dict, Any
 from datetime import datetime
 from neo4j import GraphDatabase
 import certifi
+from dotenv import load_dotenv
+
+# Load environment first
+load_dotenv()
 
 # Configuration
 NEO4J_URI = os.getenv("NEO4J_URI", "neo4j+s://e59298d2.databases.neo4j.io")
@@ -54,7 +58,7 @@ REPO_ROOT = Path(__file__).parent.parent.parent
 TRACKED_DOCUMENTS = [
     "BIOS.md",
     "README.md",
-    "WILLOW_STRATEGIC_OVERVIEW.md",
+    "MISSION_CONTROL.md",
     "docs/ORGANOGRAM_VISION.md",
     "docs/POPULATION_SCHEMA_SPEC.md",
     "docs/PROJECT_MANAGER_AGENT.md",
@@ -528,9 +532,6 @@ def print_report(report: Dict[str, Any]):
 
 
 if __name__ == "__main__":
-    from dotenv import load_dotenv
-    load_dotenv()
-
     print("Running Willow Drift Detection...")
     print("(This is Willow's first self-diagnostic capability!)")
     print()

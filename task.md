@@ -21,11 +21,12 @@
   - [x] Create a new endpoint `/organogram` JSON API in Flask. <!-- id: 9 -->
   - [x] Build the frontend view (`organogram.html`) to render the `(:Domain)-[:HAS_COMPONENT]->(:Task)` graph. <!-- id: 10 -->
 
-- [/] **Phase 3: Linear Integration** <!-- id: 11 -->
+- [x] **Phase 3: Linear Integration & Visual Kanban** <!-- id: 11 -->
 
-  - [x] Enhance `core/skills/sync_linear.py` to support two-way sync (Plan). <!-- id: 12 -->
-  - [x] "Ingest" this `task.md` into Linear immediately as the first test. <!-- id: 14 -->
-  - [ ] Create a "Project Manager" agent workflow (Autogen/N8N) to run this sync periodically. <!-- id: 13 -->
+  - [x] Enhance `core/skills/sync_linear.py` for robust bidirectional sync. <!-- id: 12 -->
+  - [x] Create `core/skills/sync_brain_tasks.py` to keep AuraDB in sync with repo. <!-- id: 14 -->
+  - [x] Implement Visual Kanban Board (`/kanban`) in Flask Dashboard. <!-- id: 20 -->
+  - [x] Upgrade `core/agents/project_manager.py` to automate all syncs. <!-- id: 13 -->
 
 - [x] **Phase 4: Landing the Plane (Verification)** <!-- id: 15 -->
 

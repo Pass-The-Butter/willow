@@ -385,6 +385,45 @@ echo "✅ BIOS complete. Ready to work."
 
 ---
 
+## Step 7: Check System Health (NEW - 2026-01-03)
+
+### Drift Detection
+
+Before starting work, verify Brain is in sync with Repo:
+
+```python
+from core.skills import detect_drift
+
+# Run drift scan
+report = detect_drift.execute()
+
+if report['drift_detected']:
+    print("WARNING: Brain/Repo drift detected!")
+    print(f"Issues: {report['summary']['issues']}")
+    # Consider running repair before proceeding
+else:
+    print("All systems nominal. Brain and Repo in sync.")
+```
+
+### What Drift Detection Checks
+
+1. **Decisions without provenance** - Knowledge captured but not linked to source
+2. **Orphaned Skills** - Skill nodes referencing deleted files
+3. **Undocumented Skills** - Python files not registered in Brain
+4. **Missing Components** - Component paths that don't exist
+5. **Document tracking** - Key markdown files present and structured
+
+### Why This Matters
+
+The Brain must reflect reality. If drift is detected:
+- Agent context may be stale
+- Skills may fail (file not found)
+- Knowledge may be outdated
+
+**Run drift detection at session start if unsure about system state.**
+
+---
+
 **END OF BIOS**
 
 You are now connected to the Brain and have the context you need. Proceed with your work.

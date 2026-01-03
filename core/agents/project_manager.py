@@ -43,12 +43,15 @@ class ProjectManagerAgent:
                     os.environ[key] = val
     
     def bootstrap(self):
-        """Bootstrap PM Agent - Load sprint context"""
+        """Bootstrap PM Agent - Load sprint context and sync boards"""
         print("=" * 80)
         print("📋 PROJECT MANAGER AGENT - BOOTSTRAPPING")
         print("=" * 80)
-        print("\nConnecting to Brain (AuraDB)...")
         
+        # 1. Sync Boards
+        self.sync_boards()
+        
+        print("\nConnecting to Brain (AuraDB)...")
         with self.driver.session() as session:
             # Test connection
             result = session.run("RETURN 'Connected!' as msg")
@@ -69,7 +72,42 @@ class ProjectManagerAgent:
             # Make recommendations
             print("\n💡 RECOMMENDATIONS:")
             self.make_recommendations(session)
-    
+
+    def sync_boards(self):
+        """Synchronize task.md, AuraDB, and Linear"""
+        print("\n🔄 SYNCHRONIZING KANBAN BOARDS...")
+        
+        repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
+        task_md = os.path.join(repo_root, 'task.md')
+        
+        # 1. Sync task.md to AuraDB
+        print("  -> Syncing local task.md to AuraDB Brain...")
+        from core.skills import sync_brain_tasks
+        try:
+            tasks = sync_brain_tasks.parse_markdown_tasks(task_md)
+            sync_brain_tasks.sync_to_brain(tasks)
+            print("  ✅ Brain sync complete.")
+        except Exception as e:
+            print(f"  ❌ Brain sync failed: {e}")
+            
+        # 2. Sync task.md to Linear
+        print("  -> Syncing local task.md to Linear...")
+        from core.skills import sync_linear
+        try:
+            sync_linear.main()
+            print("  ✅ Linear sync complete.")
+        except Exception as e:
+            print(f"  ❌ Linear sync failed: {e}")
+
+        # 3. Generate Sidebar Report
+        print("  -> Generating Sidebar Kanban report...")
+        from core.skills import post_kanban_to_sidebar
+        try:
+            post_kanban_to_sidebar.generate_kanban_report()
+            print("  ✅ Sidebar report complete.")
+        except Exception as e:
+            print(f"  ❌ Sidebar report failed: {e}")
+
     def show_sprint_status(self, session):
         """Show current sprint task status"""
         result = session.run("""
