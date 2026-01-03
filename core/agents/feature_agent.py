@@ -67,7 +67,7 @@ class FeatureAgent:
         # Display context summary
         task = self.context['task']
         print(f"\n✅ Context loaded:")
-        print(f"   Task: {task['name']}")
+        print(f"   Task: {task['title']}")
         print(f"   Status: {task['status']}")
         print(f"   Description: {task['description']}")
         
@@ -113,7 +113,7 @@ class FeatureAgent:
         print("⚙️  EXECUTING TASK")
         print("=" * 80)
         
-        task_name = self.context['task']['name']
+        task_name = self.context['task']['title']
         component = self.context['component']['name']
         
         # Route to appropriate handler
@@ -128,7 +128,7 @@ class FeatureAgent:
     
     def execute_web_task(self):
         """Execute web app tasks (Landing Page, Quote Form, etc)"""
-        task_name = self.context['task']['name']
+        task_name = self.context['task']['title']
         
         print(f"\n🌐 Web Task: {task_name}")
         print("\nℹ️  Implementation options:")
@@ -152,7 +152,7 @@ class FeatureAgent:
     
     def execute_generator_task(self):
         """Execute generator tasks (Faker Integration, Ollama, etc)"""
-        task_name = self.context['task']['name']
+        task_name = self.context['task']['title']
         
         print(f"\n🔧 Generator Task: {task_name}")
         print(f"\nℹ️  Relevant location: {self.context['component']['location']}")
@@ -162,26 +162,26 @@ class FeatureAgent:
     def log_work(self, notes: str, status: str = "In Progress"):
         """Log work to diary"""
         self.client.run("""
-            MATCH (t:Task {name: $task_name})
+            MATCH (t:Task {title: $task_name})
             CREATE (t)-[:HAS_DIARY_ENTRY]->(d:DiaryEntry {
                 agent: "Feature Agent",
                 timestamp: datetime(),
                 status: $status,
                 notes: $notes
             })
-        """, {"task_name": self.context['task']['name'], "status": status, "notes": notes})
+        """, {"task_name": self.context['task']['title'], "status": status, "notes": notes})
         
         print(f"📝 Logged to diary: {notes[:60]}...")
     
     def mark_complete(self):
         """Mark task as complete in organogram"""
         self.client.run("""
-            MATCH (t:Task {name: $task_name})
+            MATCH (t:Task {title: $task_name})
             SET t.status = 'Complete',
                 t.completed_at = datetime()
-        """, {"task_name": self.context['task']['name']})
+        """, {"task_name": self.context['task']['title']})
         
-        print(f"✅ Task marked complete: {self.context['task']['name']}")
+        print(f"✅ Task marked complete: {self.context['task']['title']}")
     
     def close(self):
         """Close database connection"""
