@@ -63,15 +63,6 @@ services:
     depends_on:
       - population-db
 
-  # Willow Sidebar (Astro Starlight)
-  sidebar:
-    build:
-      context: ./domains/sidebar
-    container_name: willow-sidebar
-    ports:
-      - "8080:80"
-    networks:
-      - willow-network
   n8n:
     image: n8nio/n8n:latest
     container_name: willow-n8n

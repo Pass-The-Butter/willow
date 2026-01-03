@@ -1,0 +1,27 @@
+{
+  "network": {
+    "bunny": "Alive",
+    "frank": "Alive"
+  },
+  "services": {
+    "bunny_docker_up": true,
+    "willow-dashboard": "Running",
+    "willow-n8n": "Running",
+    "willow-graphiti": "Running",
+    "willow-neo4j-mcp": "Running",
+    "willow-population-db": "Running",
+    "willow-proxy": "Running",
+    "willow-sidebar": "Running"
+  },
+  "data": {
+    "neo4j": {
+      "status": "ONLINE",
+      "node_count": 316
+    }
+  },
+  "memory": {
+    "graphiti": "ERROR_404"
+  },
+  "timestamp": "2026-01-03T01:58:52.929477",
+  "_id": "695877dcad7bc650ba1429da"
+}

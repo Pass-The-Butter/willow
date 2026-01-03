@@ -60,21 +60,23 @@ def check_graphiti():
         return f"OFFLINE ({str(e)})"
 
 def save_to_mongodb(report):
-    """Saves the report to MongoDB Atlas Artifact Store."""
+    """Saves the report to MongoDB Atlas Mission Control (flight_logs collection)."""
     uri = os.getenv("MONGO_URI")
     if not uri:
         print("⚠️ MONGO_URI missing. Skipping MongoDB backup.")
-        return
+        return None
 
     try:
         client = MongoClient(uri)
-        db = client.get_database("willow")
-        collection = db.get_collection("landing_reports")
+        db = client.get_database("willow-mission-control")
+        collection = db.get_collection("flight_logs")
         report["timestamp"] = datetime.now()
-        collection.insert_one(report)
-        print("💾 Report backed up to MongoDB Artifact Store.")
+        result = collection.insert_one(report)
+        print(f"💾 Flight log stored in MongoDB Mission Control (ID: {result.inserted_id})")
+        return report
     except Exception as e:
         print(f"⚠️ Failed to backup to MongoDB: {e}")
+        return None
 
 def save_to_starlight(report):
     """Saves the report as a Markdown file in the Starlight landings directory."""
@@ -168,9 +170,27 @@ def land_the_plane():
     print(f"Memory [Graphiti]: {graphiti_status}")
 
     # 5. Backup & Report
-    save_to_mongodb(report)
+    mongo_report = save_to_mongodb(report)
     save_to_starlight(report)
     send_telegram_report(report)
+
+    # Save evidence for mission rtb1tkjq
+    if mongo_report:
+        evidence_dir = os.path.join(os.getcwd(), "artifacts/evidence")
+        os.makedirs(evidence_dir, exist_ok=True)
+        evidence_path = os.path.join(evidence_dir, "mongo_push_rtb1tkjq.json")
+        with open(evidence_path, "w") as f:
+            # Convert datetime and other non-serializable types to strings
+            evidence_data = {}
+            for key, value in mongo_report.items():
+                if key == "_id":
+                    evidence_data[key] = str(value)
+                elif isinstance(value, datetime):
+                    evidence_data[key] = value.isoformat()
+                else:
+                    evidence_data[key] = value
+            json.dump(evidence_data, f, indent=2)
+        print(f"📋 Evidence saved: {evidence_path}")
 
     return report
 
