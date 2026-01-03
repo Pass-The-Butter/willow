@@ -51,6 +51,25 @@
   - [x] Create automated report posting (integrated into `land_the_plane.py`).
 
 - [x] **Phase 7: Modularise & Store Verification** <!-- id: 18 -->
-  - [x] Update `land_the_plane.py` to diarize results chronologically.
+
   - [x] Integrate MongoDB Artifact Store for backups.
   - [x] Verify automated reporting from `flight_controller.py` to Starlight.
+
+- [/] **Phase 8: Security & Governance** <!-- id: 19 -->
+
+  - [x] Perform initial Security Audit (Captain Willow).
+  - [x] Create `core/skills/security_audit.py` for automated scanning.
+  - [x] Implement Drift Detection & Repair (`detect_drift.py`, `repair_drift.py`).
+  - [x] Ingest `Willow_Graph_Gateway_Policy_2026.yaml`.
+  - [x] Remediate hardcoded credentials (deploy_bunny.py).
+
+- [/] **Phase 9: Graph Gateway & Security** <!-- id: 20 -->
+  - [x] Create `domains/gateway` service and policy.
+  - [x] Create `core/clients/graph_client.py`.
+  - [x] Verify Gateway locally (`verify_gateway.py`).
+  - [ ] Deploy Gateway to `bunny` and verify health. (BLOCKED: Network Unreachable)
+  - [x] Migrate Agents to use `GraphClient`.
+    - [x] Project Manager Agent
+    - [/] Feature Agent (Code updated, verification blocked by missing task data)
+    - [x] Flight Controller
+  - [x] Deprecate direct Neo4j access for Agents (Code updated).

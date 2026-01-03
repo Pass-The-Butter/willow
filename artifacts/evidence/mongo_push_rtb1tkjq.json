@@ -1,27 +1,18 @@
 {
   "network": {
-    "bunny": "Alive",
-    "frank": "Alive"
+    "bunny": "Dead",
+    "frank": "Dead"
   },
-  "services": {
-    "bunny_docker_up": true,
-    "willow-dashboard": "Running",
-    "willow-n8n": "Running",
-    "willow-graphiti": "Running",
-    "willow-neo4j-mcp": "Running",
-    "willow-population-db": "Running",
-    "willow-proxy": "Running",
-    "willow-sidebar": "Running"
-  },
+  "services": {},
   "data": {
     "neo4j": {
       "status": "ONLINE",
-      "node_count": 316
+      "node_count": 372
     }
   },
   "memory": {
-    "graphiti": "ERROR_404"
+    "graphiti": "OFFLINE (HTTPConnectionPool(host='bunny', port=8002): Max retries exceeded with url: / (Caused by NameResolutionError(\"HTTPConnection(host='bunny', port=8002): Failed to resolve 'bunny' ([Errno 8] nodename nor servname provided, or not known)\")))"
   },
-  "timestamp": "2026-01-03T01:58:52.929477",
-  "_id": "695877dcad7bc650ba1429da"
+  "timestamp": "2026-01-03T18:06:30.352751",
+  "_id": "69595aa638e11d74053fb541"
 }

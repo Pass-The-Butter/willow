@@ -40,6 +40,30 @@ services:
       - ./core/skills:/app/skills:ro
       - ./domains:/app/domains:ro
 
+  # Graph Gateway (Constitution Enforcement)
+  # Graph Gateway (Constitution Enforcement)
+  willow-gateway:
+    # Intentionally no build block, using image + command
+
+    image: python:3.11-slim
+    container_name: willow-gateway
+    ports:
+      - "8001:8001"
+    environment:
+      - NEO4J_URI=${NEO4J_URI}
+      - NEO4J_USER=${NEO4J_USER}
+      - NEO4J_PASSWORD=${NEO4J_PASSWORD}
+    volumes:
+      - ./domains:/app/domains:ro
+      - ./core:/app/core:ro
+      - ./.env:/app/.env:ro
+      - ./Inbox:/app/Inbox:ro
+    working_dir: /app
+    command: >
+      sh -c "pip install flask neo4j python-dotenv certifi pyyaml requests && python domains/gateway/service.py"
+    networks:
+      - willow-network
+
 
   # Flask Dashboard
   dashboard:

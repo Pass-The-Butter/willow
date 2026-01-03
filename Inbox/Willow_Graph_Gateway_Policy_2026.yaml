@@ -1,0 +1,32 @@
+
+version: 2026.1
+principles:
+  - no_direct_db_access
+  - append_only_agents
+  - immutable_business_data
+  - two_phase_commit
+  - full_provenance
+
+roles:
+  ingest_agent:
+    can_write_labels: [Customer, Policy, Contract, Product]
+    write_mode: append_only
+  agent:
+    can_write_labels: [Episode, Observation, Proposal, CandidateFact]
+    can_read_labels: ["*"]
+  curator:
+    can_promote: true
+
+forbidden_operations:
+  - DELETE
+  - DETACH DELETE
+  - DROP
+  - CALL dbms.*
+  - CALL apoc.*
+
+requirements:
+  provenance_fields:
+    - source_system
+    - source_event_id
+    - timestamp
+    - agent_run_id

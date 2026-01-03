@@ -3,14 +3,9 @@ Willow Skill: Get Task Context from Organogram
 Retrieve scoped context for a specific task based on its position in the project tree
 """
 
-from neo4j import GraphDatabase
+from core.clients.graph_client import GraphClient
 import os
-import certifi
 from typing import Optional
-
-NEO4J_URI = os.getenv("NEO4J_URI")
-NEO4J_USER = os.getenv("NEO4J_USER")
-NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD")
 
 
 def execute(task_path: str) -> dict:
@@ -33,92 +28,80 @@ def execute(task_path: str) -> dict:
         - messages: Unread messages for this task
         - rfcs: Related RFCs
     """
-    os.environ['SSL_CERT_FILE'] = certifi.where()
-    os.environ['REQUESTS_CA_BUNDLE'] = certifi.where()
-    
-    # Parse task path
-    parts = [p.strip() for p in task_path.split("→")]
-    if len(parts) != 3:
-        return {"error": f"Invalid task path. Expected 'Domain → Component → Task', got: {task_path}"}
-    
-    domain_name, component_name, task_name = parts
-    
-    driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD))
+    # 1. Initialize Client
+    client = GraphClient(agent_id="skill-get-context")
     
     try:
-        with driver.session() as session:
-            result = session.run("""
-                // Find the task
-                MATCH (domain:Domain {name: $domain_name})
-                      -[:HAS_COMPONENT]->(component:Component {name: $component_name})
-                      -[:HAS_TASK]->(task:Task {name: $task_name})
-                
-                // Get specifications
-                OPTIONAL MATCH (task)-[:REQUIRES]->(spec:Specification)
-                
-                // Get acceptance criteria
-                OPTIONAL MATCH (task)-[:MUST_SATISFY]->(criteria:TestCriteria)
-                
-                // Get dependencies
-                OPTIONAL MATCH (task)-[:DEPENDS_ON]->(dep:Task)
-                
-                // Get recent diary entries (last 7 days)
-                OPTIONAL MATCH (task)-[:HAS_DIARY_ENTRY]->(diary:DiaryEntry)
-                WHERE diary.timestamp > datetime() - duration('P7D')
-                
-                // Get unread messages
-                OPTIONAL MATCH (task)<-[:TARGETS]-(msg:Message {status: "Unread"})
-                
-                // Get related RFCs
-                OPTIONAL MATCH (component)-[:HAS_RFC]->(rfc:RFC)
-                WHERE rfc.status = "Open"
-                
-                RETURN 
-                  domain,
-                  component,
-                  task,
-                  spec,
-                  criteria,
-                  collect(DISTINCT dep) as dependencies,
-                  collect(DISTINCT diary) as diary_entries,
-                  collect(DISTINCT msg) as messages,
-                  collect(DISTINCT rfc) as rfcs
-            """, domain_name=domain_name, component_name=component_name, task_name=task_name)
+        # Parse task path
+        parts = [p.strip() for p in task_path.split("→")]
+        if len(parts) != 3:
+            return {"error": f"Invalid task path. Expected 'Domain → Component → Task', got: {task_path}"}
+        
+        domain_name, component_name, task_name = parts
+
+        results = client.run("""
+            MATCH (domain:Domain {name: $domain_name})
+                  -[:HAS_COMPONENT]->(component:Component {name: $component_name})
+                  -[:HAS_TASK]->(task:Task {title: $task_name})
             
-            record = result.single()
+            OPTIONAL MATCH (task)-[:REQUIRES]->(spec:Specification)
+            OPTIONAL MATCH (task)-[:MUST_SATISFY]->(criteria:TestCriteria)
+            OPTIONAL MATCH (task)-[:DEPENDS_ON]->(dep:Task)
             
-            if not record:
-                return {"error": f"Task not found: {task_path}"}
+            OPTIONAL MATCH (task)-[:HAS_DIARY_ENTRY]->(diary:DiaryEntry)
+            WHERE diary.timestamp > datetime() - duration('P7D')
             
-            # Build context dictionary
-            context = {
-                "task_path": task_path,
-                "domain": dict(record["domain"]) if record["domain"] else None,
-                "component": dict(record["component"]) if record["component"] else None,
-                "task": dict(record["task"]) if record["task"] else None,
-                "specification": dict(record["spec"]) if record["spec"] else None,
-                "acceptance_criteria": dict(record["criteria"]) if record["criteria"] else None,
-                "dependencies": [dict(d) for d in record["dependencies"] if d],
-                "diary_entries": [dict(e) for e in record["diary_entries"] if e],
-                "messages": [dict(m) for m in record["messages"] if m],
-                "rfcs": [dict(r) for r in record["rfcs"] if r]
-            }
+            OPTIONAL MATCH (task)<-[:TARGETS]-(msg:Message {status: "Unread"})
             
-            # Summary
-            context["summary"] = {
-                "task_name": context["task"]["name"],
-                "status": context["task"]["status"],
-                "has_dependencies": len(context["dependencies"]) > 0,
-                "blocked_by": [d["name"] for d in context["dependencies"] if d.get("status") != "Complete"],
-                "recent_activity": len(context["diary_entries"]),
-                "unread_messages": len(context["messages"]),
-                "open_rfcs": len(context["rfcs"])
-            }
+            OPTIONAL MATCH (component)-[:HAS_RFC]->(rfc:RFC)
+            WHERE rfc.status = "Open"
             
-            return context
+            RETURN 
+              domain {.*},
+              component {.*},
+              task {.*},
+              spec {.*},
+              criteria {.*},
+              collect(DISTINCT dep {.*}) as dependencies,
+              collect(DISTINCT diary {.*}) as diary_entries,
+              collect(DISTINCT msg {.*}) as messages,
+              collect(DISTINCT rfc {.*}) as rfcs
+        """, {"domain_name": domain_name, "component_name": component_name, "task_name": task_name})
+        
+        if not results:
+             return {"error": f"Task not found: {task_path}"}
+             
+        record = results[0]
+
+        # Build context dictionary
+        context = {
+            "task_path": task_path,
+            "domain": record.get("domain"),
+            "component": record.get("component"),
+            "task": record.get("task"),
+            "specification": record.get("spec"),
+            "acceptance_criteria": record.get("criteria"),
+            "dependencies": record.get("dependencies", []),
+            "diary_entries": record.get("diary_entries", []),
+            "messages": record.get("messages", []),
+            "rfcs": record.get("rfcs", [])
+        }
+        
+        # Summary
+        context["summary"] = {
+            "task_name": context["task"].get("name") if context["task"] else "Unknown",
+            "status": context["task"].get("status") if context["task"] else "Unknown",
+            "has_dependencies": len(context.get("dependencies", [])) > 0,
+            "blocked_by": [d.get("name") for d in context.get("dependencies", []) if d.get("status") != "Complete"],
+            "recent_activity": len(context.get("diary_entries", [])),
+            "unread_messages": len(context.get("messages", [])),
+            "open_rfcs": len(context.get("rfcs", []))
+        }
+        
+        return context
             
     finally:
-        driver.close()
+        client.close()
 
 
 if __name__ == "__main__":

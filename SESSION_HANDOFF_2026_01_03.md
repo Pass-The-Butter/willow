@@ -1,118 +1,83 @@
-# Session Handoff: 2026-01-03
+# Session Handoff: 2026-01-03 (Updated 18:00 UTC)
 
-## "Willow's First Self-Diagnostic: Drift Detection"
+## "Captain Willow's Security Upgrade"
 
 ### Executive Summary
 
-**MILESTONE ACHIEVED**: Built Willow's first autonomous self-improvement capability based on its own research.
+**MILESTONE ACHIEVED**: Implemented the "Willow Graph Gateway" to enforce the Constitution and rotated credentials.
 
-The `detect_drift.py` skill allows Willow to answer: **"Is my Brain (graph knowledge) in sync with my Body (repo/filesystem)?"**
-
-This is foundational for the Memory Bus architecture described in `Willow_Architecture_Focus_2026.pdf`.
+Captain Willow (Security) performed a deep investigation, found vulnerabilities, and implemented architectural fixes. The repositories are now tighter, safer, and ready for deployment.
 
 ---
 
 ### What Was Built
 
-**New Skill**: `core/skills/detect_drift.py`
+#### 1. Security & Hygiene
 
-**Capabilities**:
-1. Compares Decision nodes against repo docs (provenance tracking)
-2. Validates Skill nodes against actual Python files (orphan detection)
-3. Finds Python skills in repo not registered in Brain (missing registrations)
-4. Checks Component paths exist on filesystem
-5. Scans tracked markdown documents for structure changes
-6. Generates repair plans for detected drift
+- **Audit**: Created `core/skills/security_audit.py` (Secrets & Drift scanning).
+- **Repair**: Created `core/skills/repair_drift.py` and synced 4 missing skills to Brain.
+- **Rotation**: Rotated Neo4j AuraDB password via Cypher. Updated local `.env`.
 
-**Initial Scan Results** (proving drift exists):
-- **15/15 Decisions** have no source provenance (no `source_file`, `source_anchor`)
-- **20/24 skills** in repo are NOT registered in Brain
-- **1 Skill** node references a missing file (orphaned)
-- **1 Component** references a missing path
+#### 2. The Graph Gateway (`domains/gateway`)
+
+The implementation of `Willow_Graph_Gateway_Policy_2026.yaml`.
+
+- **Policy**: `domains/gateway/policy.py` validates Cypher queries (No DELETE, etc.).
+- **Service**: `domains/gateway/service.py` runs on port 8001 to proxy DB access.
+- **Client**: `core/clients/graph_client.py` for Agents to use instead of direct Neo4j.
+- **Infrastructure**: Added `willow-gateway` to `docker-compose.yml`.
 
 ---
 
-### What's Recorded in Brain
+### State of Keys
 
-All of this session's work is now in AuraDB:
-
-1. **Task**: `WILL-ONT-001` - "Drift Detection Skill" (status: Complete)
-2. **DiaryEntry**: Documents this as foundational change
-3. **Decision**: "Drift Detection as prerequisite for Memory Bus"
-4. **Skill Node**: `detect_drift` registered with capabilities
+- **Neo4j** (AuraDB): Password ROTATED. New value in your local `.env`.
+- **SSH** (Bunny): Hardcoded password REMOVED from `deploy_bunny.py`. Expects `BUNNY_SSH_PASSWORD`.
 
 ---
 
 ### Files Changed
 
-| File | Status | Description |
-|------|--------|-------------|
-| `core/skills/detect_drift.py` | **NEW** | The drift detection skill |
-| `docs/INSURANCE_FACTORY_VISION.md` | **NEW** | Collated vision document |
-| `SESSION_HANDOFF_2026_01_03.md` | **NEW** | This file |
-
----
-
-### The Vision Alignment
-
-Before building, we confirmed shared understanding:
-
-1. **Ontology** is not just a static schema - it's the living nervous system
-2. **Population** is decoupled as "Rent-a-Population" (SaaS feeder)
-3. **Drift** between Brain ↔ Repo is the core problem to solve
-4. **Memory Bus** pattern (Event → Normalize → Decide → Project) is the solution
-5. **Drift Detection** proves the problem before building the solution
+| File                            | Status  | Description                         |
+| ------------------------------- | ------- | ----------------------------------- |
+| `core/skills/security_audit.py` | **NEW** | Secrets & Drift Scanner             |
+| `core/skills/repair_drift.py`   | **NEW** | Fixes drift in Brain                |
+| `domains/gateway/*`             | **NEW** | Gateway Service & Policy            |
+| `core/clients/graph_client.py`  | **NEW** | Agent Client Library                |
+| `bootstrap/deploy_bunny.py`     | **MOD** | Removed hardcoded password          |
+| `docker-compose.yml`            | **MOD** | Added willow-gateway service        |
+| `docs/procedures/HOW_TO...`     | **MOD** | Updated with Cypher rotation method |
 
 ---
 
 ### Next Steps (for next session)
 
-**Immediate**:
-1. [ ] Run `python core/skills/detect_drift.py` to see current drift state
-2. [ ] Register the 20 undocumented skills in Brain
-3. [ ] Add provenance to existing Decision nodes
+**Deployment**:
 
-**Short-Term**:
-1. [ ] Design Memory Bus schema (`schemas/memory-bus.cypher`)
-2. [ ] Implement provenance tracking on all node types
-3. [ ] Build automated repair (not just detection)
+1. [ ] **Deploy Gateway**: `python bootstrap/deploy_bunny.py` (Ensure `willow-gateway` starts).
+2. [ ] **Verify Remote**: SSH to bunny and `curl http://localhost:8001/health`.
 
-**Architecture Alignment**:
-- Review `Willow_Architecture_Focus_2026.pdf` for full Memory Bus design
-- The detect_drift skill implements **Section 7: Drift Detection**
+**Refactoring (The Great Migration)**: 3. [ ] Update all Agents (`core/agents/*`) to support `GraphClient`. 4. [ ] Deprecate direct Neo4j credentials for Agents (remove from their envs).
+
+**Policy**: 5. [ ] Decide on `source_system` injection strategy (Auto-inject in Service vs Require in Client).
 
 ---
 
 ### How to Resume
 
 ```bash
-# 1. Instantiate as Willow PM (Ontology)
-# Read BIOS.md first
-
-# 2. Run drift detection to see current state
+# 1. Verify your environment is clean
 cd /Volumes/Delila/dev/Willow
 source .env
-python3 core/skills/detect_drift.py
 
-# 3. Review the drift report and decide next action
-# Options:
-#   - Register missing skills in Brain
-#   - Add provenance to Decisions
-#   - Design Memory Bus schema
+# 2. Check Gateway Logic locally
+python domains/gateway/verify_gateway.py
+
+# 3. Deploy to Bunny
+python bootstrap/deploy_bunny.py
 ```
 
 ---
 
-### Key Insight
-
-> "You cannot fix drift without first detecting it."
-
-This session proved the drift problem exists with concrete numbers. The next step is to build the sync machinery that prevents drift from occurring.
-
-**Willow is now self-aware of its own consistency state.**
-
----
-
-_Signed: Willow PM (Ontology) - Claude Opus 4.5_
-_Session: 2026-01-03_
-_Milestone: First Autonomous Self-Improvement_
+_Signed: Captain Willow (Security) - Claude Code_
+_Session: 2026-01-03 18:00 UTC_

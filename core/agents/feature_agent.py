@@ -6,13 +6,12 @@ Generic agent that can execute any task in the organogram with scoped context
 
 import os
 import sys
-from neo4j import GraphDatabase
-import certifi
+import os
+import sys
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 from core.skills import get_task_context
-
-os.environ['SSL_CERT_FILE'] = certifi.where()
+from core.clients.graph_client import GraphClient
 
 
 class FeatureAgent:
@@ -34,10 +33,10 @@ class FeatureAgent:
         self.task_path = task_path
         self.load_env()
         
-        self.driver = GraphDatabase.driver(
-            os.getenv('NEO4J_URI'),
-            auth=(os.getenv('NEO4J_USER'), os.getenv('NEO4J_PASSWORD'))
-        )
+        self.task_path = task_path
+        self.load_env()
+        
+        self.client = GraphClient(agent_id="feature-agent")
         
         self.context = None
         
@@ -162,33 +161,31 @@ class FeatureAgent:
     
     def log_work(self, notes: str, status: str = "In Progress"):
         """Log work to diary"""
-        with self.driver.session() as session:
-            session.run("""
-                MATCH (t:Task {name: $task_name})
-                CREATE (t)-[:HAS_DIARY_ENTRY]->(d:DiaryEntry {
-                    agent: "Feature Agent",
-                    timestamp: datetime(),
-                    status: $status,
-                    notes: $notes
-                })
-            """, task_name=self.context['task']['name'], status=status, notes=notes)
+        self.client.run("""
+            MATCH (t:Task {name: $task_name})
+            CREATE (t)-[:HAS_DIARY_ENTRY]->(d:DiaryEntry {
+                agent: "Feature Agent",
+                timestamp: datetime(),
+                status: $status,
+                notes: $notes
+            })
+        """, {"task_name": self.context['task']['name'], "status": status, "notes": notes})
         
         print(f"📝 Logged to diary: {notes[:60]}...")
     
     def mark_complete(self):
         """Mark task as complete in organogram"""
-        with self.driver.session() as session:
-            session.run("""
-                MATCH (t:Task {name: $task_name})
-                SET t.status = 'Complete',
-                    t.completed_at = datetime()
-            """, task_name=self.context['task']['name'])
+        self.client.run("""
+            MATCH (t:Task {name: $task_name})
+            SET t.status = 'Complete',
+                t.completed_at = datetime()
+        """, {"task_name": self.context['task']['name']})
         
         print(f"✅ Task marked complete: {self.context['task']['name']}")
     
     def close(self):
         """Close database connection"""
-        self.driver.close()
+        self.client.close()
 
 
 def main():

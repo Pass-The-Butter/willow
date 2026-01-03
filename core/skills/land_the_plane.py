@@ -4,8 +4,8 @@ import subprocess
 import requests
 from datetime import datetime
 from dotenv import load_dotenv
-from neo4j import GraphDatabase
-import certifi
+from dotenv import load_dotenv
+from core.clients.graph_client import GraphClient
 from pymongo import MongoClient
 
 load_dotenv()
@@ -34,16 +34,12 @@ def check_docker_remote(host):
 
 def check_neo4j():
     """Checks Neo4j connectivity and node count."""
-    uri = os.getenv("NEO4J_URI")
-    user = os.getenv("NEO4J_USER")
-    password = os.getenv("NEO4J_PASSWORD")
-    os.environ['SSL_CERT_FILE'] = certifi.where()
-    
     try:
-        driver = GraphDatabase.driver(uri, auth=(user, password))
-        with driver.session() as session:
-            count = session.run("MATCH (n) RETURN count(n) as c").single()['c']
-        driver.close()
+        client = GraphClient(agent_id="skill-land-the-plane")
+        results = client.run("MATCH (n) RETURN count(n) as c")
+        client.close()
+        
+        count = results[0]['c'] if results else 0
         return {"status": "ONLINE", "node_count": count}
     except Exception as e:
         return {"status": "OFFLINE", "error": str(e)}

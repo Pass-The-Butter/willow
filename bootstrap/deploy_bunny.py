@@ -3,13 +3,18 @@ import os
 import sys
 import paramiko
 from scp import SCPClient
+from pathlib import Path
+from dotenv import load_dotenv
+
+load_dotenv()
+
 
 # Configuration
 REMOTE_HOST = "bunny"
 REMOTE_USER = "bunny"
-REMOTE_PASS = "Chocolate1!"
-REMOTE_DIR = "~/agilemesh"
-LOCAL_INTERFACE_DIR = "domains/interface"
+REMOTE_PASS = os.getenv("SSH_BUNNY_PASSWORD")
+REMOTE_DIR = "agilemesh" # Relative to home
+REPO_ROOT = Path(__file__).parent.parent
 
 def create_ssh_client():
     client = paramiko.SSHClient()
@@ -30,178 +35,143 @@ def run_command(client, command):
         err = stderr.read().decode().strip()
         print(f"❌ Error: {err}")
         return False
-    return True
+    else:
+        out = stdout.read().decode().strip()
+        if out: print(out)
+        return True
 
-def copy_files(client):
-    print("Copying files...")
-    scp = SCPClient(client.get_transport())
+def sync_path(scp, local_path, remote_base):
+    """Sync a file or directory to remote base"""
+    if not os.path.exists(local_path):
+        print(f"⚠️ Skipping missing path: {local_path}")
+        return
+
+    name = os.path.basename(local_path)
+    remote_dest = f"{remote_base}/{name}"
     
-    # Create directories first
-    run_command(client, f"mkdir -p {REMOTE_DIR}/website/templates")
-    run_command(client, f"mkdir -p {REMOTE_DIR}/docs/procedures")
-    
-    # Copy files
+    print(f"Syncing {name}...")
     try:
-        scp.put(f"{LOCAL_INTERFACE_DIR}/app.py", f"{REMOTE_DIR}/website/app.py")
-        
-        # SCP doesn't support wildcard upload easily with paramiko scp usually, 
-        # but recursive directory put works.
-        # Let's put the templates dir contents one by one or put the whole dir
-        # We'll assume local structure matches remote needs
-        
-        # Upload templates individually to be safe or use recursive put of directory
-        # scp.put(f"{LOCAL_INTERFACE_DIR}/templates", f"{REMOTE_DIR}/website/", recursive=True)
-        # However, scp paths can be tricky. Let's list local files.
-        
-        templates = os.listdir(f"{LOCAL_INTERFACE_DIR}/templates")
-        for t in templates:
-            scp.put(f"{LOCAL_INTERFACE_DIR}/templates/{t}", f"{REMOTE_DIR}/website/templates/{t}")
-
-        # Copy SOP
-        scp.put("docs/procedures/HOW_TO_ROTATE_NEO4J_PASSWORD.md", f"{REMOTE_DIR}/docs/procedures/HOW_TO_ROTATE_NEO4J_PASSWORD.md")
-        
+        scp.put(local_path, remote_base, recursive=True)
     except Exception as e:
-        print(f"❌ SCP Error: {e}")
-    finally:
-        scp.close()
+        print(f"❌ Sync failed for {name}: {e}")
 
-def create_docker_compose(client):
-    print("Generating docker-compose.yml...")
-    
-    # Load .env
-    env_vars = {}
-    try:
-        with open('.env') as f:
-            for line in f:
-                if '=' in line and not line.strip().startswith('#'):
-                    k, v = line.strip().split('=', 1)
-                    env_vars[k] = v.strip()
-    except:
-        pass
-                
-    neo4j_uri = env_vars.get('NEO4J_URI', '')
-    neo4j_user = env_vars.get('NEO4J_USER', '')
-    neo4j_password = env_vars.get('NEO4J_PASSWORD', '')
-    
-    # Docker Compose Content
-    dc_content = f"""
-version: '3.8'
 
-services:
-  website:
-    image: python:3.11-slim
-    container_name: agilemesh-website
-    restart: unless-stopped
-    working_dir: /app
-    ports:
-      - "8000:5001"
-    environment:
-      - FLASK_APP=app.py
-      - FLASK_ENV=production
-      - NEO4J_URI={neo4j_uri}
-      - NEO4J_USER={neo4j_user}
-      - NEO4J_PASSWORD={neo4j_password}
-      - PG_HOST=bunny
-      - PG_PORT=5432
-      - PG_DB=population
-      - PG_USER=willow
-      - PG_PASS=willowdev123
-    volumes:
-      - ./website:/app
-      - ./docs:/docs
-    command: >
-      sh -c "pip install -q flask neo4j psycopg2-binary python-dotenv certifi &&
-             python app.py"
-    extra_hosts:
-      - "bunny:host-gateway"
-"""
-    # Write remote file using cat
-    # Use single quotes for EOF to avoid variable expansion by shell, but needed for python f-string
-    # We escape $ if needed (none here except inside env vars which are resolved by python)
+def ensure_docker_compose(client):
+    """Ensure docker-compose binary exists on remote"""
+    print("Checking for docker-compose...")
+    # Check if we can run it globally
+    if run_command(client, "which docker-compose"):
+        return "docker-compose"
     
-    cmd = f"cat > {REMOTE_DIR}/docker-compose.yml <<'EOF'\n{dc_content}\nEOF"
-    run_command(client, cmd)
+    # Check if we can run docker compose plugin
+    stdin, stdout, stderr = client.exec_command("docker compose version")
+    if stdout.channel.recv_exit_status() == 0:
+        return "docker compose"
+        
+    # Check local binary
+    local_bin = f"{REMOTE_DIR}/docker-compose"
+    if run_command(client, f"test -f {local_bin}"):
+        return f"./docker-compose"
+        
+    # Download it
+    print("⚠️ docker-compose not found. Downloading standalone binary...")
+    # Using v2.29.1
+    url = "https://github.com/docker/compose/releases/download/v2.29.1/docker-compose-linux-x86_64"
+    run_command(client, f"curl -L {url} -o {local_bin}")
+    run_command(client, f"chmod +x {local_bin}")
+    return f"./docker-compose"
 
 def deploy():
+    if not REMOTE_PASS:
+        print("❌ SSH_BUNNY_PASSWORD env var not set")
+        sys.exit(1)
+
     client = create_ssh_client()
-    
-    # Load .env locally
-    env_vars = {}
-    try:
-        with open('.env') as f:
-            for line in f:
-                if '=' in line and not line.strip().startswith('#'):
-                    k, v = line.strip().split('=', 1)
-                    env_vars[k] = v.strip()
-    except:
-        pass
-                
-    neo4j_uri = env_vars.get('NEO4J_URI', '')
-    neo4j_user = env_vars.get('NEO4J_USER', '')
-    neo4j_password = env_vars.get('NEO4J_PASSWORD', '')
+    scp = SCPClient(client.get_transport())
 
     try:
-        copy_files(client)
-        # create_docker_compose still useful for structure if user fixes docker later, 
-        # but let's just skip it if we know we are using run, or keep it.
-        # We can pass vars to create_docker_compose if we wanted, but let's leave that function distinct if it works.
-        # Actually create_docker_compose had its own env loading.
+        # 1. Prepare Remote Directory
+        print("Preparing remote directory...")
+        run_command(client, f"mkdir -p {REMOTE_DIR}")
         
-        # Redefine run_docker_compose to use local vars if needed or just try running commands
+        # 2. Create optimized tarball locally
+        print("Creating deployment package (filtering node_modules, etc)...")
         
-        print("Restarting Docker services...")
-        
-        def run_docker_compose():
-            # Try v2
-            if run_command(client, f"cd {REMOTE_DIR} && docker compose down"):
-                if run_command(client, f"cd {REMOTE_DIR} && docker compose up -d"):
-                    return True
-            # Try v1
-            if run_command(client, f"cd {REMOTE_DIR} && docker-compose down"):
-                if run_command(client, f"cd {REMOTE_DIR} && docker-compose up -d"):
-                    return True
-            return False
-
-        if not run_docker_compose():
-            print("⚠️ Docker Compose unavailable. Falling back to direct 'docker run'...")
+        # Prepare escaped .env for Docker Compose
+        with open(REPO_ROOT / ".env", 'r') as f:
+            env_content = f.read()
             
-            # Clean up existing
-            run_command(client, "docker stop agilemesh-website || true")
-            run_command(client, "docker rm agilemesh-website || true")
-            
-            # Construct long docker run command
-            # Note: We need to pass all env vars manually
-            cmd = (
-                f"docker run -d --name agilemesh-website "
-                f"--restart unless-stopped "
-                f"-p 8000:5001 "
-                f"-w /app "
-                f"-v {REMOTE_DIR}/website:/app "
-                f"-v {REMOTE_DIR}/docs:/docs "
-                f"-e FLASK_APP=app.py "
-                f"-e FLASK_ENV=production "
-                f"-e NEO4J_URI='{neo4j_uri}' "
-                f"-e NEO4J_USER='{neo4j_user}' "
-                f"-e NEO4J_PASSWORD='{neo4j_password}' "
-                f"-e PG_HOST=bunny "
-                f"-e PG_PORT=5432 "
-                f"-e PG_DB=population "
-                f"-e PG_USER=willow "
-                f"-e PG_PASS=willowdev123 "
-                f"--add-host bunny:host-gateway "
-                f"python:3.11-slim "
-                f"sh -c 'pip install -q flask neo4j psycopg2-binary python-dotenv certifi && python app.py'"
-            )
-            
-            if not run_command(client, cmd):
-                print("❌ 'docker run' failed too!")
-                return
+        # Escape $ in NEO4J_PASSWORD for Docker Compose (replace $ with $$)
+        # We only want to target the specific line to be safe
+        lines = env_content.splitlines()
+        new_lines = []
+        for line in lines:
+            if line.startswith("NEO4J_PASSWORD="):
+                key, val = line.split("=", 1)
+                # Escape $ to $$
+                val_escaped = val.replace("$", "$$")
+                new_lines.append(f"{key}={val_escaped}")
+            else:
+                new_lines.append(line)
         
-        print("\n✅ Deployment to Bunny Complete!")
-        print(f"🌍 Access: http://{REMOTE_HOST}:8000/board")
+        with open(REPO_ROOT / ".env.deploy", 'w') as f:
+            f.write("\n".join(new_lines) + "\n")
+            
+        # Tar command (renaming .env.deploy to .env using -s for Mac bsdtar if available, or just include it and mv on remote)
+        # Using simple include and remote mv to be cross-platform safe regarding tar flags
+        tar_cmd = [
+            "tar", 
+            "--exclude='node_modules'", 
+            "--exclude='__pycache__'", 
+            "--exclude='.git'", 
+            "--exclude='.DS_Store'",
+            "--exclude='.venv'",
+            "-czf", "deploy_package.tar.gz",
+            "docker-compose.yml", ".env.deploy", "core", "domains", "infrastructure", "Inbox"
+        ]
+        # Run tar command locally
+        import subprocess
+        subprocess.check_call(" ".join(tar_cmd), shell=True, cwd=str(REPO_ROOT))
         
+        # 3. Upload Tarball
+        print(f"Uploading deployment package to {REMOTE_DIR}...")
+        scp.put(str(REPO_ROOT / "deploy_package.tar.gz"), REMOTE_DIR)
+        
+        # 4. Extract on Remote
+        print("Extracting package on remote...")
+        run_command(client, f"tar -xzf {REMOTE_DIR}/deploy_package.tar.gz -C {REMOTE_DIR}")
+        
+        # Move .env.deploy to .env
+        run_command(client, f"mv {REMOTE_DIR}/.env.deploy {REMOTE_DIR}/.env")
+        
+        # 5. Ensure Docker Compose
+        compose_cmd_prefix = ensure_docker_compose(client)
+        print(f"Using compose command: {compose_cmd_prefix}")
+        
+        # 6. Docker Compose Up (Gateway Only)
+        print("🚀 Launching Gateway Service...")
+        
+        # If using ./docker-compose, we must be in the dir
+        # We only deploy willow-gateway to avoid sidebar build errors for now
+        cmd = f"cd {REMOTE_DIR} && {compose_cmd_prefix} up -d --build willow-gateway"
+        
+        run_command(client, cmd)
+        
+        print("\n✅ Deployment Command Sent!")
+        print("⏳ Verifying Health...")
+        run_command(client, "curl -I http://localhost:8001/health || echo 'Health check failed'")
+        
+    except subprocess.CalledProcessError as e:
+        print(f"❌ Local Tar creation failed: {e}")
     finally:
+        scp.close()
         client.close()
+        # Cleanup local tar and temp env
+        if os.path.exists(str(REPO_ROOT / "deploy_package.tar.gz")):
+            os.remove(str(REPO_ROOT / "deploy_package.tar.gz"))
+        if os.path.exists(str(REPO_ROOT / ".env.deploy")):
+            os.remove(str(REPO_ROOT / ".env.deploy"))
 
 if __name__ == "__main__":
     deploy()
+

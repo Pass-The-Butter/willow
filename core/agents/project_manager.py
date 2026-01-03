@@ -6,13 +6,13 @@ Autonomous agent that reads organogram, delegates tasks, and monitors progress
 
 import os
 import sys
-from neo4j import GraphDatabase
-import certifi
 
 # Add parent directory to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
-os.environ['SSL_CERT_FILE'] = certifi.where()
+from core.clients.graph_client import GraphClient
+
+
 
 
 class ProjectManagerAgent:
@@ -28,10 +28,7 @@ class ProjectManagerAgent:
         # Load credentials
         self.load_env()
         
-        self.driver = GraphDatabase.driver(
-            os.getenv('NEO4J_URI'),
-            auth=(os.getenv('NEO4J_USER'), os.getenv('NEO4J_PASSWORD'))
-        )
+        self.client = GraphClient(agent_id="project-manager")
         
     def load_env(self):
         """Load environment variables from .env file"""
@@ -52,26 +49,27 @@ class ProjectManagerAgent:
         self.sync_boards()
         
         print("\nConnecting to Brain (AuraDB)...")
-        with self.driver.session() as session:
-            # Test connection
-            result = session.run("RETURN 'Connected!' as msg")
-            print(f"✅ {result.single()['msg']}")
-            
-            # Load sprint tasks
-            print("\n📊 LOADING SPRINT CONTEXT...")
-            self.show_sprint_status(session)
-            
-            # Check messages
-            print("\n📧 CHECKING MESSAGES...")
-            self.check_messages(session)
-            
-            # Check RFCs
-            print("\n📝 CHECKING RFCs...")
-            self.check_rfcs(session)
-            
-            # Make recommendations
-            print("\n💡 RECOMMENDATIONS:")
-            self.make_recommendations(session)
+        print("\nConnecting to Brain (Gateway)...")
+        # Test connection
+        results = self.client.run("RETURN 'Connected!' as msg")
+        if results:
+            print(f"✅ {results[0]['msg']}")
+        
+        # Load sprint tasks
+        print("\n📊 LOADING SPRINT CONTEXT...")
+        self.show_sprint_status()
+        
+        # Check messages
+        print("\n📧 CHECKING MESSAGES...")
+        self.check_messages()
+        
+        # Check RFCs
+        print("\n📝 CHECKING RFCs...")
+        self.check_rfcs()
+        
+        # Make recommendations
+        print("\n💡 RECOMMENDATIONS:")
+        self.make_recommendations()
 
     def sync_boards(self):
         """Synchronize task.md, AuraDB, and Linear"""
@@ -108,9 +106,9 @@ class ProjectManagerAgent:
         except Exception as e:
             print(f"  ❌ Sidebar report failed: {e}")
 
-    def show_sprint_status(self, session):
+    def show_sprint_status(self):
         """Show current sprint task status"""
-        result = session.run("""
+        result = self.client.run("""
             MATCH (d:Domain)-[:HAS_COMPONENT]->(c:Component)-[:HAS_TASK]->(t:Task)
             RETURN d.name as domain,
                    count(t) as total_tasks,
@@ -130,9 +128,9 @@ class ProjectManagerAgent:
             if record['not_started'] > 0:
                 print(f"      ⚪ {record['not_started']} not started")
     
-    def check_messages(self, session):
+    def check_messages(self):
         """Check for unread messages"""
-        result = session.run("""
+        messages = self.client.run("""
             MATCH (m:Message {status: "Unread"})
             RETURN m.from as from,
                    m.to as to,
@@ -142,7 +140,6 @@ class ProjectManagerAgent:
             LIMIT 5
         """)
         
-        messages = list(result)
         if messages:
             print(f"\n  Found {len(messages)} unread message(s):")
             for msg in messages:
@@ -151,9 +148,9 @@ class ProjectManagerAgent:
         else:
             print("  ✅ No unread messages")
     
-    def check_rfcs(self, session):
+    def check_rfcs(self):
         """Check for open RFCs requiring decision"""
-        result = session.run("""
+        rfcs = self.client.run("""
             MATCH (rfc:RFC {status: "Open"})
             RETURN rfc.id as id,
                    rfc.title as title,
@@ -161,7 +158,6 @@ class ProjectManagerAgent:
             ORDER BY rfc.priority DESC
         """)
         
-        rfcs = list(result)
         if rfcs:
             print(f"\n  Found {len(rfcs)} open RFC(s):")
             for rfc in rfcs:
@@ -169,10 +165,10 @@ class ProjectManagerAgent:
         else:
             print("  ✅ No open RFCs")
     
-    def make_recommendations(self, session):
+    def make_recommendations(self):
         """Analyze and make task recommendations"""
         # Find tasks ready to start (no blockers)
-        result = session.run("""
+        ready_tasks = self.client.run("""
             MATCH (t:Task {status: 'Not Started'})
             OPTIONAL MATCH (t)-[:DEPENDS_ON]->(dep:Task)
             WHERE dep.status <> 'Complete'
@@ -182,7 +178,6 @@ class ProjectManagerAgent:
             LIMIT 3
         """)
         
-        ready_tasks = list(result)
         if ready_tasks:
             print("\n  Tasks ready to start (no blockers):")
             for task in ready_tasks:
@@ -212,7 +207,7 @@ class ProjectManagerAgent:
         
     def close(self):
         """Close database connection"""
-        self.driver.close()
+        self.client.close()
 
 
 def main():
@@ -234,11 +229,9 @@ def main():
                 if cmd == 'quit':
                     break
                 elif cmd == 'status':
-                    with agent.driver.session() as session:
-                        agent.show_sprint_status(session)
+                    agent.show_sprint_status()
                 elif cmd == 'messages':
-                    with agent.driver.session() as session:
-                        agent.check_messages(session)
+                    agent.check_messages()
                 elif cmd == 'help':
                     print("Commands: status, messages, delegate, quit")
                 else:
