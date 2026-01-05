@@ -264,25 +264,25 @@
 
 ### 📊 LLM Routing Matrix
 
-| Task Type | Primary Model | Fallback | Cost |
-|-----------|---------------|----------|------|
-| Intent Classification | Groq Mixtral | Ollama Llama3 | FREE |
-| Simple Chat | Groq Llama 70B | OpenRouter | FREE/Low |
-| Complex Reasoning | Claude Sonnet 4.5 | GPT-4o | Medium |
-| Code Generation | Claude Sonnet 4.5 | GPT-4o | Medium |
-| Deep Research | Gemini 2.5 Pro (2M ctx) | Claude Opus | Low |
-| Image Generation | DALL-E 3 | Midjourney | Medium |
-| Bulk Generation | Ollama (local) | Groq | FREE |
-| Embeddings | OpenAI text-embedding-3 | Ollama | Low |
+| Task Type             | Primary Model           | Fallback      | Cost     |
+| --------------------- | ----------------------- | ------------- | -------- |
+| Intent Classification | Groq Mixtral            | Ollama Llama3 | FREE     |
+| Simple Chat           | Groq Llama 70B          | OpenRouter    | FREE/Low |
+| Complex Reasoning     | Claude Sonnet 4.5       | GPT-4o        | Medium   |
+| Code Generation       | Claude Sonnet 4.5       | GPT-4o        | Medium   |
+| Deep Research         | Gemini 2.5 Pro (2M ctx) | Claude Opus   | Low      |
+| Image Generation      | DALL-E 3                | Midjourney    | Medium   |
+| Bulk Generation       | Ollama (local)          | Groq          | FREE     |
+| Embeddings            | OpenAI text-embedding-3 | Ollama        | Low      |
 
 ### 🔍 Free Research APIs
 
-| API | Limit | Use Case |
-|-----|-------|----------|
-| Brave Search | 2000/month FREE | Web search grounding |
-| Semantic Scholar | Unlimited FREE | Academic papers (214M) |
-| arXiv | Unlimited FREE | Scientific papers |
-| Gemini CLI | 1000/day FREE | Research with Google login |
+| API              | Limit           | Use Case                   |
+| ---------------- | --------------- | -------------------------- |
+| Brave Search     | 2000/month FREE | Web search grounding       |
+| Semantic Scholar | Unlimited FREE  | Academic papers (214M)     |
+| arXiv            | Unlimited FREE  | Scientific papers          |
+| Gemini CLI       | 1000/day FREE   | Research with Google login |
 
 ---
 
@@ -476,4 +476,37 @@ psql -h bunny -U willow -d population
 **Version**: 1.0
 **Created**: 2025-12-25
 **Last Updated**: 2025-12-25
-**Next Review**: After Linear/Telegram setup complete
+
+---
+
+## 🧠 Memory Systems Status (Progress Note)
+
+**As of 2026-01-05**
+
+### 1. Zep (Long-Term Memory)
+
+- **Status**: ⚠️ Deprecated / Pivot
+- **Code**: `bootstrap/deploy_memory.py` (Deployment logic exists)
+- **Note**: The core skill `manage_episodic_memory.py` explicitly states it **"Replaces Zep"** with a native Neo4j implementation (`Session -> Turn -> Turn`).
+- **Action**: Decision needed on whether to keep Zep for embeddings/summarization or fully retire it.
+
+### 2. Graphiti (Knowledge Graph Construction)
+
+- **Status**: 🟡 Partial / Client-Ready
+- **Code**: `core/skills/client_graphiti.py`
+- **Verification**: Included in `verify_memory_system.py`.
+- **Infrastructure**: Client expects service at `http://localhost:8002`. Docker container status on `bunny` needs verification.
+
+### 3. Native Neo4j Memory (The "Willow" Way)
+
+- **Status**: ✅ Active / Experimental
+- **Code**: `core/skills/manage_episodic_memory.py`
+- **Mechanism**: Stores conversation turns directly in the Brain (AuraDB) linked to Tasks.
+- **Advantage**: Zero latency, strict governance, and direct integration with the Organogram.
+
+### 4. Cognee
+
+- **Status**: ❌ Not Started
+- **Note**: No code or documentation found in current repository.
+
+---

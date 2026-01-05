@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 from dotenv import load_dotenv
 from core.clients.graph_client import GraphClient
 from pymongo import MongoClient
+from core.skills import send_telegram_notification
 
 load_dotenv()
 
@@ -192,13 +193,6 @@ def land_the_plane():
 
 def send_telegram_report(report):
     """Sends the landing report to Telegram."""
-    token = os.getenv("TELEGRAM_BOT_TOKEN")
-    chat_id = os.getenv("TELEGRAM_CHAT_ID")
-    
-    if not token or not chat_id:
-        print("⚠️ Telegram token or chat_id missing. Skipping notification.")
-        return
-
     # Construct message
     status_emoji = "✅" if report["services"].get("bunny_docker_up") else "❌"
     msg = f"{status_emoji} *Flight Controller Report*\n\n"
@@ -219,13 +213,7 @@ def send_telegram_report(report):
     msg += f"\n*Data Check:* {report['data']['neo4j']['status']}\n"
     msg += f"*Memory Check:* {report['memory']['graphiti']}\n"
 
-    try:
-        url = f"https://api.telegram.org/bot{token}/sendMessage"
-        payload = {"chat_id": chat_id, "text": msg, "parse_mode": "Markdown"}
-        requests.post(url, json=payload, timeout=5)
-        print("📨 Telegram notification sent.")
-    except Exception as e:
-        print(f"⚠️ Failed to send Telegram: {e}")
+    send_telegram_notification.execute(msg)
 
 if __name__ == "__main__":
     land_the_plane()

@@ -352,6 +352,7 @@ def factory():
 @app.route('/api/factory/story')
 def get_factory_story():
     """Fetches a complete claim journey for the Factory visualization."""
+    print("DEBUG: /api/factory/story requested...", flush=True)
     from neo4j import GraphDatabase
     import certifi
     
@@ -366,11 +367,13 @@ def get_factory_story():
     try:
         with driver.session() as session:
             # Query for a complete story suitable for the factory
-            # We look for a Person -> Pet -> Vet mechanism
+            # We look for a Person -> Pet -> Vet mechanism AND the Decision
             result = session.run("""
-                MATCH (p:Person)-[:OWNS]->(pet:Pet)<-[:INVOLVES]-(c:Claim)-[:FILED_AGAINST]->(pol:Policy)
+                MATCH (p:Person)-[:OWNS]->(pet:Pet)<-[:CONCERNS]-(c:Claim)-[:FILED_AGAINST]->(pol:Policy)
                 OPTIONAL MATCH (pet)-[:VISITED]->(vet:VetPractice)-[:DIAGNOSED]->(d:Diagnosis)
-                RETURN p, pet, c, pol, vet, d
+                OPTIONAL MATCH (dec:Decision)-[:DECIDED_ON]->(c)
+                RETURN p, pet, c, pol, vet, d, dec
+                ORDER BY elementId(c) DESC
                 LIMIT 1
             """)
             
@@ -384,6 +387,7 @@ def get_factory_story():
             pol = record['pol']
             vet = record['vet']
             d = record['d']
+            dec = record['dec']
             
             story = {
                 "person": {
@@ -405,7 +409,11 @@ def get_factory_story():
                 },
                 "claim": {
                     "status": c.get('status', 'Pending'),
-                    "amount": "£984.50" # Placeholder or derived
+                    "amount": f"£{c.get('amount', 0)}"
+                },
+                "decision": {
+                    "outcome": dec.get('decision', 'PENDING') if dec else "PENDING",
+                    "reason": dec.get('reason', 'Under Review') if dec else "Under Review"
                 }
             }
             

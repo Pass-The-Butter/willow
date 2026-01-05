@@ -199,15 +199,28 @@
 
     <!-- Section 5: The Brain (Willow) -->
     <section class="section center-align">
-        <div class="card step-4">
-            <h2>4. The Brain</h2>
-            <p>The complete claim reaches the assessment queue.</p>
-            <p><strong>Anne Farraday</strong> (Assessor) reviews it.</p>
-            <p><strong>Willow</strong> (AI Agent) creates a research task to validate the diagnosis.</p>
-            <code style="display:block; background:#000; padding:10px; border-radius:4px; margin-top:10px; color:#10b981;">
-                MATCH (d:Diagnosis {code: "DX-SNIFF-LUMP"})<br>
-                RETURN valid
-            </code>
+        </div>
+    </section>
+
+    <!-- Section 5: Decision Logic (Glass Box) - NEW -->
+    <section class="section center-align">
+        <div class="card step-logic" style="border-color: #f59e0b;">
+            <h2>5. Decision Logic (Glass Box)</h2>
+            <p>The <strong>Neurosymbolic Engine</strong> evaluates the facts:</p>
+            <ul style="list-style: none; padding: 0;">
+                <li style="margin: 10px 0; display: flex; align-items: center;">
+                    <span style="background: #10b981; color: #fff; padding: 2px 6px; border-radius: 4px; margin-right: 10px;">PASS</span>
+                    Policy Active? (Status: ACTIVE)
+                </li>
+                <li style="margin: 10px 0; display: flex; align-items: center;">
+                    <span style="background: #10b981; color: #fff; padding: 2px 6px; border-radius: 4px; margin-right: 10px;">PASS</span>
+                    Coverage Match? (Vet Fees)
+                </li>
+            </ul>
+            <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #475569;">
+                <p><strong>Result:</strong> <span class="decision-outcome" style="color: #f59e0b; font-weight: bold; font-size: 1.2em;">...</span></p>
+                <p style="font-size: 0.9em; color: #94a3b8;" class="decision-reason">...</p>
+            </div>
         </div>
     </section>
 
@@ -253,7 +266,12 @@
                         RETURN valid
                     `;
                     
-                     // Step 5: Settlement
+                    // Step 5: Decision Logic
+                    document.querySelector('.decision-outcome').innerText = story.decision.outcome;
+                    document.querySelector('.decision-reason').innerText = story.decision.reason;
+
+                     // Step 6: Settlement
+                    document.querySelector('.step-5 h2').innerText = "6. Settlement";
                     document.querySelector('.step-5 h3').innerText = `CLAIM SETTLED: ${story.claim.amount}`;
                 }
             })
