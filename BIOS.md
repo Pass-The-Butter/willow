@@ -28,44 +28,27 @@ Your role determines what context you load:
 
 ## Step 2: Connect to the Brain
 
-The Brain is **AuraDB** (Neo4j Cloud). All project knowledge lives here.
+The Brain is **AuraDB** (Neo4j Cloud). To ensure security and governance, **ALL** access must go through the **Graph Gateway**.
 
 ### Connection Details
 
-```python
-# Load credentials
-import os
-os.environ['NEO4J_URI'] = "neo4j+s://YOUR_INSTANCE.databases.neo4j.io"
-os.environ['NEO4J_USER'] = "neo4j"
-os.environ['NEO4J_PASSWORD'] = "YOUR_PASSWORD"
+Direct connection to Neo4j is **FORBIDDEN** for agents. You must use the `GraphClient`.
 
-# Or load from .env file
-with open('.env', 'r') as f:
-    for line in f:
-        if '=' in line:
-            key, value = line.strip().split('=', 1)
-            os.environ[key] = value
+```python
+from core.clients.graph_client import GraphClient
+
+# Initialize client (it automatically finds the Gateway)
+client = GraphClient(agent_id="YOUR_AGENT_NAME")
 ```
 
 ### Test Connection
 
 ```python
-from neo4j import GraphDatabase
-import certifi
-import os
-
-os.environ['SSL_CERT_FILE'] = certifi.where()
-
-driver = GraphDatabase.driver(
-    os.getenv('NEO4J_URI'),
-    auth=(os.getenv('NEO4J_USER'), os.getenv('NEO4J_PASSWORD'))
-)
-
-with driver.session() as session:
-    result = session.run("RETURN 'Brain connected!' as message")
-    print(result.single()['message'])
-
-driver.close()
+try:
+    results = client.run("RETURN 'Brain connected!' as message")
+    print(results[0]['message'])
+except Exception as e:
+    print(f"Connection failed: {e}")
 ```
 
 **Expected Output**: `Brain connected!`
@@ -81,39 +64,31 @@ If this fails, **STOP**. You cannot proceed without Brain access.
 You see **everything**. Load the full organogram:
 
 ```python
-from neo4j import GraphDatabase
-import os
-import certifi
+from core.clients.graph_client import GraphClient
 
-os.environ['SSL_CERT_FILE'] = certifi.where()
+client = GraphClient(agent_id="Captain")
 
-driver = GraphDatabase.driver(
-    os.getenv('NEO4J_URI'),
-    auth=(os.getenv('NEO4J_USER'), os.getenv('NEO4J_PASSWORD'))
-)
+# Get full project overview
+results = client.run("""
+    MATCH (p:Project)-[:HAS_DOMAIN]->(d:Domain)
+    OPTIONAL MATCH (d)-[:HAS_COMPONENT]->(c:Component)
+    OPTIONAL MATCH (c)-[:HAS_TASK]->(t:Task)
+    RETURN p.name as project,
+           d.name as domain,
+           collect(DISTINCT c.name) as components,
+           collect(DISTINCT {name: t.name, status: t.status}) as tasks
+    ORDER BY d.name
+""")
 
-with driver.session() as session:
-    # Get full project overview
-    result = session.run("""
-        MATCH (p:Project)-[:HAS_DOMAIN]->(d:Domain)
-        OPTIONAL MATCH (d)-[:HAS_COMPONENT]->(c:Component)
-        OPTIONAL MATCH (c)-[:HAS_TASK]->(t:Task)
-        RETURN p.name as project,
-               d.name as domain,
-               collect(DISTINCT c.name) as components,
-               collect(DISTINCT {name: t.name, status: t.status}) as tasks
-        ORDER BY d.name
-    """)
-
-    print("=" * 80)
-    print("CAPTAIN'S FULL CONTEXT")
-    print("=" * 80)
-    for record in result:
-        print(f"\n{record['domain']} Domain:")
-        print(f"  Components: {', '.join(record['components'])}")
-        print(f"  Tasks: {len([t for t in record['tasks'] if t['name']])} total")
-
-driver.close()
+print("=" * 80)
+print("CAPTAIN'S FULL CONTEXT")
+print("=" * 80)
+for record in results:
+    print(f"\n{record['domain']} Domain:")
+    components = record['components'] or []
+    print(f"  Components: {', '.join(components)}")
+    tasks = record['tasks'] or []
+    print(f"  Tasks: {len([t for t in tasks if t['name']])} total")
 ```
 
 **You also need**:
@@ -129,11 +104,12 @@ driver.close()
 You see **domain-level** context and sprint objectives:
 
 ```python
-from core.skills import get_task_context
+from core.clients.graph_client import GraphClient
+
+client = GraphClient(agent_id="Project Manager")
 
 # Get current sprint tasks
-with driver.session() as session:
-    result = session.run("""
+results = client.run("""
         MATCH (t:Task)
         WHERE t.status IN ['In Progress', 'Not Started']
         OPTIONAL MATCH (t)-[:DEPENDS_ON]->(dep:Task {status: 'Not Started'})
@@ -144,7 +120,7 @@ with driver.session() as session:
     """)
 
     print("CURRENT SPRINT STATUS:")
-    for record in result:
+    for record in results:
         status_icon = "🟡" if record['status'] == 'In Progress' else "⚪"
         print(f"{status_icon} {record['task']}: {record['status']}")
         if record['blockers']:
@@ -153,7 +129,7 @@ with driver.session() as session:
 
 **You also need**:
 
-- Jira sync: `python bootstrap/sync_atlassian.py` (TODO: implement)
+- Jira sync: `python bootstrap/sync_atlassian.py`
 - Team messages: Query `(:Message {status: "Unread"})`
 - **Role Definition**: Read `core/roles/project_manager.md` for your prime directive.
 
@@ -191,38 +167,39 @@ print(f"Unread messages: {len(context['messages'])}")
 ### Check Diary Entries
 
 ```python
-# Get last 7 days of work on your task
-with driver.session() as session:
-    result = session.run("""
-        MATCH (t:Task {name: $task_name})-[:HAS_DIARY_ENTRY]->(d:DiaryEntry)
-        WHERE d.timestamp > datetime() - duration('P7D')
-        RETURN d.agent as agent,
-               d.timestamp as when,
-               d.notes as notes
-        ORDER BY d.timestamp DESC
-    """, task_name="Faker Integration")
+from core.clients.graph_client import GraphClient
+client = GraphClient(agent_id="Feature Agent")
 
-    print("RECENT WORK:")
-    for record in result:
-        print(f"- {record['when']}: {record['agent']}")
-        print(f"  {record['notes']}")
+# Get last 7 days of work on your task
+results = client.run("""
+    MATCH (t:Task {name: $task_name})-[:HAS_DIARY_ENTRY]->(d:DiaryEntry)
+    WHERE d.timestamp > datetime() - duration('P7D')
+    RETURN d.agent as agent,
+           d.timestamp as when,
+           d.notes as notes
+    ORDER BY d.timestamp DESC
+""", parameters={"task_name": "Faker Integration"})
+
+print("RECENT WORK:")
+for record in results:
+    print(f"- {record['when']}: {record['agent']}")
+    print(f"  {record['notes']}")
 ```
 
 ### Check Messages
 
 ```python
 # Get unread messages for your task
-with driver.session() as session:
-    result = session.run("""
-        MATCH (t:Task {name: $task_name})<-[:TARGETS]-(m:Message {status: "Unread"})
-        RETURN m.from as from,
-               m.subject as subject,
-               m.body as body
-    """, task_name="Faker Integration")
+results = client.run("""
+    MATCH (t:Task {name: $task_name})<-[:TARGETS]-(m:Message {status: "Unread"})
+    RETURN m.from as from,
+           m.subject as subject,
+           m.body as body
+""", parameters={"task_name": "Faker Integration"})
 
-    for record in result:
-        print(f"📧 From {record['from']}: {record['subject']}")
-        print(f"   {record['body']}")
+for record in results:
+    print(f"📧 From {record['from']}: {record['subject']}")
+    print(f"   {record['body']}")
 ```
 
 ---
@@ -234,21 +211,20 @@ with driver.session() as session:
 ```python
 from datetime import datetime
 
-with driver.session() as session:
-    session.run("""
-        MATCH (t:Task {name: $task_name})
-        CREATE (t)-[:HAS_DIARY_ENTRY]->(d:DiaryEntry {
-            agent: $agent_name,
-            timestamp: datetime(),
-            status: $status,
-            notes: $notes
-        })
-    """,
-    task_name="Faker Integration",
-    agent_name="Your Name Here",
-    status="In Progress",
-    notes="Brief description of what you did"
-    )
+client.run("""
+    MATCH (t:Task {name: $task_name})
+    CREATE (t)-[:HAS_DIARY_ENTRY]->(d:DiaryEntry {
+        agent: $agent_name,
+        timestamp: datetime(),
+        status: $status,
+        notes: $notes
+    })
+""", parameters={
+    "task_name": "Faker Integration",
+    "agent_name": "Your Name Here",
+    "status": "In Progress",
+    "notes": "Brief description of what you did"
+})
 ```
 
 ---
@@ -258,12 +234,11 @@ with driver.session() as session:
 When a task is complete:
 
 ```python
-with driver.session() as session:
-    session.run("""
-        MATCH (t:Task {name: $task_name})
-        SET t.status = 'Complete',
-            t.completed_at = datetime()
-    """, task_name="Faker Integration")
+client.run("""
+    MATCH (t:Task {name: $task_name})
+    SET t.status = 'Complete',
+        t.completed_at = datetime()
+""", parameters={"task_name": "Faker Integration"})
 ```
 
 ---
@@ -363,15 +338,14 @@ source .env
 
 # 2. Test Brain connection
 python -c "
-from neo4j import GraphDatabase
-import os
-import certifi
-os.environ['SSL_CERT_FILE'] = certifi.where()
-driver = GraphDatabase.driver(os.getenv('NEO4J_URI'), auth=(os.getenv('NEO4J_USER'), os.getenv('NEO4J_PASSWORD')))
-with driver.session() as s:
-    result = s.run('RETURN \"Connected!\" as msg')
-    print(result.single()['msg'])
-driver.close()
+from core.clients.graph_client import GraphClient
+try:
+    client = GraphClient(agent_id='BIOS_CHECK')
+    res = client.run('RETURN \"Connected!\" as msg')
+    print(res[0]['msg'])
+except Exception as e:
+    print(f'Failed: {e}')
+    exit(1)
 "
 
 # 3. Load your context (adjust based on role)
@@ -416,6 +390,7 @@ else:
 ### Why This Matters
 
 The Brain must reflect reality. If drift is detected:
+
 - Agent context may be stale
 - Skills may fail (file not found)
 - Knowledge may be outdated

@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   # MCP server connecting Claude → AuraDB
@@ -64,7 +64,6 @@ services:
     networks:
       - willow-network
 
-
   # Flask Dashboard
   dashboard:
     build:
@@ -127,9 +126,103 @@ services:
 
   # --- MEMORY SERVICES ---
 
-  # Zep Removed - Using Neo4j Native Episodic Memory
-  # zep: ...
-  # zep-nlp: ...
+  # Zep (Episodic Memory) - Resurrected
+  zep-db:
+    image: postgres:15-alpine
+    container_name: willow-zep-db
+    environment:
+      - POSTGRES_USER=zep
+      - POSTGRES_PASSWORD=zep_password
+      - POSTGRES_DB=zep
+    networks:
+      - willow-network
+    volumes:
+      - zep_db_data:/var/lib/postgresql/data
+
+  # --- ACCESSORY SERVICES ---
+
+  # Temporal (Orchestrator)
+  temporal:
+    image: temporalio/auto-setup:1.22.3
+    container_name: willow-temporal
+    ports:
+      - "7233:7233"
+    environment:
+      - DB=postgresql
+      - DB_PORT=5432
+      - POSTGRES_USER=temporal
+      - POSTGRES_PWD=temporal
+      - POSTGRES_SEEDS=temporal-db
+    depends_on:
+      - temporal-db
+    networks:
+      - willow-network
+
+  temporal-ui:
+    image: temporalio/ui:latest
+    container_name: willow-temporal-ui
+    ports:
+      - "8081:8080" # Changed to 8081 to avoid conflict with other services
+    environment:
+      - TEMPORAL_ADDRESS=temporal:7233
+      - TEMPORAL_CORS_ORIGINS=http://localhost:3000,http://localhost:8081
+    depends_on:
+      - temporal
+    networks:
+      - willow-network
+
+  temporal-admin-tools:
+    image: temporalio/admin-tools:1.22.3
+    container_name: willow-temporal-admin-tools
+    environment:
+      - TEMPORAL_ADDRESS=temporal:7233
+    networks:
+      - willow-network
+    stdin_open: true
+    tty: true
+
+  temporal-db:
+    image: postgres:15-alpine
+    container_name: willow-temporal-db
+    environment:
+      - POSTGRES_USER=temporal
+      - POSTGRES_PASSWORD=temporal
+    networks:
+      - willow-network
+    volumes:
+      - temporal_db_data:/var/lib/postgresql/data
+
+  zep:
+    image: zepai/zep:latest
+    container_name: willow-zep
+    ports:
+      - "8003:8000"
+    environment:
+      - ZEP_DB_HOST=zep-db
+      - ZEP_DB_PORT=5432
+      - ZEP_DB_USER=zep
+      - ZEP_DB_PASSWORD=zep_password
+      - ZEP_DB_NAME=zep
+      - ZEP_OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ZEP_LOG_LEVEL=info
+    depends_on:
+      - zep-db
+    networks:
+      - willow-network
+
+  # MongoDB (The Vault / Document Archive)
+  mongo:
+    image: mongo:latest
+    container_name: willow-mongo
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_USER:-admin}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD:-mongopassword}
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - willow-network
 
   # Graphiti (Experiential Memory)
   graphiti:
@@ -175,6 +268,9 @@ services:
 volumes:
   n8n_data:
   population_data:
+  zep_db_data:
+  temporal_db_data:
+  mongo_data:
 
 networks:
   willow-network:

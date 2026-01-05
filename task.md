@@ -64,6 +64,7 @@
   - [x] Remediate hardcoded credentials (deploy_bunny.py).
 
 - [/] **Phase 9: Graph Gateway & Security** <!-- id: 20 -->
+
   - [x] Create `domains/gateway` service and policy.
   - [x] Create `core/clients/graph_client.py`.
   - [x] Verify Gateway locally (`verify_gateway.py`).
@@ -71,5 +72,46 @@
   - [x] Migrate Agents to use `GraphClient`.
     - [x] Project Manager Agent
     - [/] Feature Agent (Code updated, verification blocked by missing task data)
-    - [x] Flight Controller
   - [x] Deprecate direct Neo4j access for Agents (Code updated).
+
+- [x] **Maintenance: Jira Configuration Update** <!-- id: 21 -->
+
+  - [x] Verify new Project Key for "Willow". <!-- id: 22 -->
+  - [x] Update `bootstrap/sync_atlassian.py` with correct key. <!-- id: 23 -->
+
+- [x] **Maintenance: Linear Configuration Update** <!-- id: 24 -->
+
+  - [x] Rewrite `core/skills/sync_linear.py` for 'Architect' protocol. <!-- id: 25 -->
+  - [x] Verify Linear hierarchy (Phases -> Projects). <!-- id: 26 -->
+  - [x] Create unified `core/skills/sync_project_management.py` skill. <!-- id: 27 -->
+
+- [/] **Phase 10: Business Ontology Construction** <!-- id: 28 -->
+
+  - [x] Analysis of Claims Story & Ontology Vision (See `domains/claims/ontology_vision.md`) <!-- id: 29 -->
+  - [x] Implement Ontology Schema (Cypher) (`schemas/business_ontology.cypher`) <!-- id: 30 -->
+  - [x] Verify Ontology with Jane Winterbottom Story (`schemas/verify_business_ontology.py`) <!-- id: 31 -->
+  - [x] Diarise Request & Vision <!-- id: 32 -->
+
+- [/] **Phase 11: Insurance Factory Visualization** <!-- id: 33 -->
+  - [x] Plan Scrollytelling Experience (GSAP) <!-- id: 34 -->
+  - [x] Implement `/factory` endpoint in Flask <!-- id: 35 -->
+  - [x] Create `factory.html` with GSAP animations <!-- id: 36 -->
+  - [ ] Verify accessibility and flow <!-- id: 37 -->
+
+- [ ] **Phase 12: Deep Research Agent** <!-- id: 38 -->
+  - [ ] Get Gemini API key from AI Studio <!-- id: 39 -->
+  - [ ] Get Brave Search API key (free tier) <!-- id: 40 -->
+  - [ ] Deploy AuraDB schema (`bootstrap/deploy_research_schema.py`) <!-- id: 41 -->
+  - [ ] Create N8N workflow (`bootstrap/deep_research_workflow.json`) <!-- id: 42 -->
+    - [ ] Telegram trigger node
+    - [ ] Groq intent classifier
+    - [ ] Brave Search integration
+    - [ ] Semantic Scholar integration
+    - [ ] arXiv integration
+    - [ ] Gemini synthesis node
+    - [ ] AuraDB write nodes
+    - [ ] Telegram notification
+  - [ ] Test with sample query: "AI Agent Memory Architectures" <!-- id: 43 -->
+  - [ ] Verify < $5/month running costs <!-- id: 44 -->
+  - **Spec**: `docs/specs/DEEP_RESEARCH_AGENT_SPEC.md`
+  - **Plan**: `.github/prompts/plan-deepResearchAgent.prompt.md`

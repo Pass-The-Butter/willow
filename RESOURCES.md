@@ -196,31 +196,93 @@
 
 ## 🤖 AI/LLM SERVICES
 
-### Ollama (Local LLMs)
+> **Note**: We have access to multiple AI APIs beyond just local Ollama. Use the right model for the task - route cheap/fast tasks to Groq, complex reasoning to Claude/GPT-4, research to Gemini (2M context).
+
+### 🌐 Cloud AI APIs (Primary - Use These!)
+
+#### OpenRouter (Multi-Model Gateway)
+
+- **API**: `https://openrouter.ai/api/v1`
+- **API Key**: In `.env` as `OPENROUTER_API_KEY`
+- **Models Available**: Claude, GPT-4, Gemini, Llama, Mistral, and 100+ others
+- **Role**: Universal gateway - route to any model via single API
+- **Status**: ✅ Active
+- **Cost**: Pay-per-token (varies by model)
+- **Why Use**: Single API key, automatic fallbacks, cost comparison
+
+#### Groq (Ultra-Fast Inference)
+
+- **API**: `https://api.groq.com/openai/v1`
+- **API Key**: In `.env` as `GROQ_API_KEY`
+- **Models**: Llama 3 70B, Mixtral 8x7B, Gemma
+- **Role**: Fast, cheap inference for routing/classification/simple tasks
+- **Status**: ✅ Active
+- **Cost**: FREE tier (generous limits), then pay-per-token
+- **Why Use**: 10x faster than OpenAI, great for intent routing
+
+#### Gemini API (Google AI)
+
+- **API**: Via `google-generativeai` SDK or Gemini CLI
+- **Access**: Google One AI Premium subscription
+- **Models**: Gemini 2.5 Pro (2M token context!)
+- **Role**: Deep research, long document analysis, NotebookLM-style work
+- **Status**: ✅ Active
+- **Cost**: Included with Google One AI Premium
+- **Why Use**: 2M token context = upload entire codebases/papers
+- **CLI**: `brew install gemini-cli` → `gemini` (1000 req/day free)
+
+#### Claude API (Anthropic)
+
+- **API**: `https://api.anthropic.com/v1`
+- **API Key**: In `.env` as `ANTHROPIC_API_KEY`
+- **Models**: Sonnet 4.5, Opus 4.5, Haiku
+- **Role**: Captain agent, complex reasoning, code generation
+- **Status**: ✅ Active
+- **Cost**: Pay-per-token
+
+#### OpenAI API
+
+- **API**: `https://api.openai.com/v1`
+- **API Key**: In `.env` as `OPENAI_API_KEY`
+- **Models**: GPT-4o, GPT-4 Turbo, o1, DALL-E 3
+- **Role**: Image generation, alternative reasoning, embeddings
+- **Status**: ✅ Active
+- **Cost**: Pay-per-token
+
+### 🏠 Local AI (Backup/Bulk Work)
+
+#### Ollama (Local LLMs)
 
 - **Host**: Frank (`frank` on Tailscale)
 - **Port**: 11434
 - **Models Installed**: `llama3`, `mistral`
 - **API**: `http://frank:11434/api`
-- **Role**: Local LLM inference, cost-free AI
-- **Status**: Active
-- **Cost**: $0 (self-hosted)
+- **Role**: Bulk generation (10M NPCs), offline work, privacy-sensitive tasks
+- **Status**: ✅ Active
+- **Cost**: $0 (self-hosted, RTX 3090 Ti)
+- **Note**: Use cloud APIs for quality/speed; Ollama for bulk/offline
 
-### Claude API (Anthropic)
+### 📊 LLM Routing Matrix
 
-- **Model**: Sonnet 4.5 (`claude-sonnet-4-5-20250929`)
-- **API Key**: TBD (stored where?)
-- **Usage**: Captain agent, feature agents, research agents
-- **Status**: Active
-- **Cost**: Pay-per-token (varies)
+| Task Type | Primary Model | Fallback | Cost |
+|-----------|---------------|----------|------|
+| Intent Classification | Groq Mixtral | Ollama Llama3 | FREE |
+| Simple Chat | Groq Llama 70B | OpenRouter | FREE/Low |
+| Complex Reasoning | Claude Sonnet 4.5 | GPT-4o | Medium |
+| Code Generation | Claude Sonnet 4.5 | GPT-4o | Medium |
+| Deep Research | Gemini 2.5 Pro (2M ctx) | Claude Opus | Low |
+| Image Generation | DALL-E 3 | Midjourney | Medium |
+| Bulk Generation | Ollama (local) | Groq | FREE |
+| Embeddings | OpenAI text-embedding-3 | Ollama | Low |
 
-### OpenAI API
+### 🔍 Free Research APIs
 
-- **API Key**: TBD (if configured)
-- **Models**: TBD
-- **Usage**: Alternative to Claude for specific tasks
-- **Status**: TBD
-- **Cost**: Pay-per-token (varies)
+| API | Limit | Use Case |
+|-----|-------|----------|
+| Brave Search | 2000/month FREE | Web search grounding |
+| Semantic Scholar | Unlimited FREE | Academic papers (214M) |
+| arXiv | Unlimited FREE | Scientific papers |
+| Gemini CLI | 1000/day FREE | Research with Google login |
 
 ---
 

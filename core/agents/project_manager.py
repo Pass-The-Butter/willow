@@ -97,6 +97,15 @@ class ProjectManagerAgent:
         except Exception as e:
             print(f"  ❌ Linear sync failed: {e}")
 
+        # 3. Sync task.md to Jira
+        print("  -> Syncing local task.md to Jira...")
+        try:
+            from bootstrap import sync_atlassian
+            sync_atlassian.main()
+            print("  ✅ Jira sync complete.")
+        except Exception as e:
+            print(f"  ❌ Jira sync failed: {e}")
+
         # 3. Generate Sidebar Report
         print("  -> Generating Sidebar Kanban report...")
         from core.skills import post_kanban_to_sidebar

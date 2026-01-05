@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Willow Insurance Factory</title>
+    <!-- GSAP Core & Plugins -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/MotionPathPlugin.min.js"></script>
+    
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --text-color: #e2e8f0;
+            --accent: #38bdf8;
+            --path-color: #334155;
+            --card-bg: #1e293b;
+        }
+
+        body {
+            margin: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+
+        .header {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+        }
+
+        .btn {
+            background: var(--accent);
+            color: var(--bg-color);
+            padding: 8px 16px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+        }
+
+        /* SVG Factory Background */
+        .factory-svg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* The moving packet */
+        #claim-packet {
+            fill: #f59e0b;
+            filter: drop-shadow(0 0 10px #f59e0b);
+            visibility: hidden; /* Hidden until animation starts */
+        }
+
+        /* Scrollytelling Sections */
+        .section {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start; /* Default layout */
+            padding: 0 10vw;
+            position: relative;
+            z-index: 10;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid #475569;
+            padding: 2rem;
+            border-radius: 12px;
+            max-width: 500px;
+            opacity: 0; /* Animated in */
+            transform: translateY(50px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+        }
+
+        .card h2 {
+            margin-top: 0;
+            color: var(--accent);
+            font-size: 2rem;
+        }
+
+        .right-align {
+            justify-content: flex-end;
+        }
+        
+        .center-align {
+            justify-content: center;
+        }
+
+        /* Accessible Text (Sr-only styled) */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border-width: 0;
+        }
+        
+        /* Progress Indicator */
+        .progress-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            height: 6px;
+            background: var(--accent);
+            width: 0%;
+            z-index: 100;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="progress-bar"></div>
+
+    <div class="header">
+        <a href="/board" class="btn">← Back to Mission Control</a>
+    </div>
+
+    <!-- SVG Container for the Path and Packet -->
+    <svg class="factory-svg" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid slice">
+        <!-- The Motion Path (Invisible or faintly visible) -->
+        <path id="factory-path" d="M 50,150 
+                 Q 300,150 500,300 
+                 T 900,500 
+                 T 500,700 
+                 T 100,850 
+                 Q 300,950 500,950 
+                 T 900,950" 
+              fill="none" stroke="#334155" stroke-width="4" stroke-dasharray="10,10"/>
+        
+        <!-- The Claim Packet -->
+        <rect id="claim-packet" x="-20" y="-15" width="40" height="30" rx="5" />
+    </svg>
+
+    <!-- Section 1: Introduction -->
+    <section class="section center-align">
+        <div class="card intro-card">
+            <h2>The Insurance Factory</h2>
+            <p>Welcome to the inner workings of Willow.</p>
+            <p><strong>Scroll down</strong> to follow the journey of a single claim through our digital nervous system.</p>
+        </div>
+    </section>
+
+    <!-- Section 2: Inception -->
+    <section class="section">
+        <div class="card step-1">
+            <h2>1. Introduction</h2>
+            <h3>14 Feb 2024</h3>
+            <p>Jane Winterbottom purchases <strong>Bobby</strong>, a Cocker Spaniel.</p>
+            <p>She buys a policy from <em>Affinity</em>. The data enters the People Graph.</p>
+            <ul>
+                <li>Node Created: <code>(:Person {name: "Jane"})</code></li>
+                <li>Node Created: <code>(:Pet {name: "Bobby"})</code></li>
+            </ul>
+        </div>
+    </section>
+
+    <!-- Section 3: The Event -->
+    <section class="section right-align">
+        <div class="card step-2">
+            <h2>2. The Event</h2>
+            <p>Bobby develops a "Sniffle and Lump".</p>
+            <p>Jane visits <strong>Francis Bacon Pet Health</strong>.</p>
+            <p>The Vet records the diagnosis code <code>DX-SNIFF-LUMP</code>.</p>
+        </div>
+    </section>
+
+    <!-- Section 4: Intake & Enrichment -->
+    <section class="section">
+        <div class="card step-3">
+            <h2>3. Intake & Enrichment</h2>
+            <p>Jane submits a Claim Form, but it's incomplete.</p>
+            <div style="background: rgba(255,255,255,0.1); padding: 10px; border-radius: 6px; margin: 10px 0;">
+                <p><strong>⚠️  Missing Signature</strong></p>
+                <p><strong>⚠️  Missing History</strong></p>
+            </div>
+            <p>The <strong>Insurance Factory Brokers</strong> intervene:</p>
+            <ul>
+                <li>✉️ Email sent to Vet</li>
+                <li>📞 Vet calls back</li>
+                <li>📝 Agent updates the graph</li>
+            </ul>
+        </div>
+    </section>
+
+    <!-- Section 5: The Brain (Willow) -->
+    <section class="section center-align">
+        <div class="card step-4">
+            <h2>4. The Brain</h2>
+            <p>The complete claim reaches the assessment queue.</p>
+            <p><strong>Anne Farraday</strong> (Assessor) reviews it.</p>
+            <p><strong>Willow</strong> (AI Agent) creates a research task to validate the diagnosis.</p>
+            <code style="display:block; background:#000; padding:10px; border-radius:4px; margin-top:10px; color:#10b981;">
+                MATCH (d:Diagnosis {code: "DX-SNIFF-LUMP"})<br>
+                RETURN valid
+            </code>
+        </div>
+    </section>
+
+    <!-- Section 6: Settlement -->
+    <section class="section right-align">
+        <div class="card step-5">
+            <h2>5. Settlement</h2>
+            <p>Approved!</p>
+            <p>The payment is scheduled. A letter is generated and sent to Jane.</p>
+            <h3 style="color: #10b981; margin-top: 20px;">CLAIM SETTLED: £984.50</h3>
+        </div>
+    </section>
+
+    <div style="height: 50vh;"></div>
+
+    <script>
+        gsap.registerPlugin(ScrollTrigger, MotionPathPlugin);
+
+        // Fetch Dynamic Story Data
+        fetch('/api/factory/story')
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    const story = data.story;
+                    
+                    // Update DOM Elements
+                    // Step 1: Intro
+                    document.querySelector('.step-1 h2').innerText = `1. Introduction: ${story.person.name}`;
+                    document.querySelector('.step-1 p:nth-of-type(1)').innerHTML = `${story.person.name} purchases <strong>${story.pet.name}</strong> (${story.pet.species}).`;
+                    document.querySelector('.step-1 ul').innerHTML = `
+                        <li>Node Created: <code>(:Person {name: "${story.person.name}"})</code></li>
+                        <li>Node Created: <code>(:Pet {name: "${story.pet.name}"})</code></li>
+                    `;
+
+                    // Step 2: Event
+                    document.querySelector('.step-2 p:nth-of-type(1)').innerHTML = `${story.pet.name} develops "${story.event.diagnosis_desc}".`;
+                    document.querySelector('.step-2 p:nth-of-type(2)').innerHTML = `${story.person.name} visits <strong>${story.event.vet_name}</strong>.`;
+                    document.querySelector('.step-2 p:nth-of-type(3)').innerHTML = `The Vet records the diagnosis code <code>${story.event.diagnosis_code}</code>.`;
+
+                    // Step 4: Brain
+                    document.querySelector('.step-4 code').innerHTML = `
+                        MATCH (d:Diagnosis {code: "${story.event.diagnosis_code}"})<br>
+                        RETURN valid
+                    `;
+                    
+                     // Step 5: Settlement
+                    document.querySelector('.step-5 h3').innerText = `CLAIM SETTLED: ${story.claim.amount}`;
+                }
+            })
+            .catch(err => console.error("Error loading factory story:", err));
+
+        // 1. Packet Animation (Following the Path)
+        // Ensure the factory path exists before animating
+        const path = document.querySelector("#factory-path");
+        
+        // Make packet visible
+        gsap.set("#claim-packet", { autoAlpha: 1 });
+
+        gsap.to("#claim-packet", {
+            scrollTrigger: {
+                trigger: "body",
+                start: "top top",
+                end: "bottom bottom",
+                scrub: 1, // Smooth scrubbing
+            },
+            motionPath: {
+                path: "#factory-path",
+                align: "#factory-path",
+                alignOrigin: [0.5, 0.5],
+                autoRotate: true
+            },
+            ease: "none"
+        });
+
+        // 2. Card Entrance Animations
+        gsap.utils.toArray(".card").forEach(card => {
+            gsap.to(card, {
+                scrollTrigger: {
+                    trigger: card,
+                    start: "top 80%", // When top of card hits 80% viewport height
+                    toggleActions: "play none none reverse"
+                },
+                y: 0,
+                opacity: 1,
+                duration: 0.8,
+                ease: "power2.out"
+            });
+        });
+
+        // 3. Progress Bar
+        gsap.to(".progress-bar", {
+            scrollTrigger: {
+                trigger: "body",
+                start: "top top",
+                end: "bottom bottom",
+                scrub: 0
+            },
+            width: "100%",
+            ease: "none"
+        });
+
+    </script>
+</body>
+</html>

@@ -256,6 +256,84 @@ def get_organogram_data():
     finally:
         driver.close()
 
+@app.route('/api/organogram/business')
+def get_business_organogram_data():
+    """Fetches the Business Ontology entities for the visual organogram."""
+    from neo4j import GraphDatabase
+    import certifi
+    
+    uri = os.getenv("NEO4J_URI")
+    user = os.getenv("NEO4J_USER")
+    password = os.getenv("NEO4J_PASSWORD")
+    
+    os.environ['SSL_CERT_FILE'] = certifi.where()
+    
+    driver = GraphDatabase.driver(uri, auth=(user, password))
+    
+    try:
+        with driver.session() as session:
+            # Query for Business Entities and their Relationships
+            result = session.run("""
+                MATCH (n)
+                WHERE n:Person OR n:Pet OR n:Policy OR n:Claim OR n:VetPractice OR n:Diagnosis OR n:Address OR n:Insurer
+                OPTIONAL MATCH (n)-[r]->(m)
+                WHERE m:Person OR m:Pet OR m:Policy OR m:Claim OR m:VetPractice OR m:Diagnosis OR m:Address OR m:Insurer
+                RETURN n, r, m
+            """)
+            
+            nodes = {}
+            links = []
+            
+            # Helper to get label
+            def get_label(node):
+                if node.get('name'): return node.get('name')
+                if node.get('reference_number'): return node.get('reference_number')
+                if node.get('policy_number'): return node.get('policy_number')
+                if node.get('description'): return node.get('description')[:20] + "..."
+                if node.get('line1'): return node.get('line1')
+                if node.get('code'): return node.get('code')
+                return "Entity"
+
+            def get_type(node):
+                return list(node.labels)[0] if node.labels else "Unknown"
+
+            for record in result:
+                source_node = record['n']
+                target_node = record['m']
+                rel = record['r']
+                
+                # Add source node
+                s_id = str(source_node.element_id)
+                if s_id not in nodes:
+                    nodes[s_id] = {
+                        "id": s_id,
+                        "label": get_label(source_node),
+                        "type": get_type(source_node)
+                    }
+                
+                if target_node and rel:
+                    # Add target node
+                    t_id = str(target_node.element_id)
+                    if t_id not in nodes:
+                        nodes[t_id] = {
+                            "id": t_id,
+                            "label": get_label(target_node),
+                            "type": get_type(target_node)
+                        }
+                    
+                    # Add link
+                    links.append({
+                        "source": s_id,
+                        "target": t_id,
+                        "type": type(rel).__name__
+                    })
+            
+            return jsonify({"nodes": list(nodes.values()), "links": links})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        driver.close()
+
 @app.route('/organogram')
 def organogram():
     """Render the Visual Organogram page"""
@@ -265,6 +343,78 @@ def organogram():
 def kanban():
     """Render the Visual Kanban Board page"""
     return render_template('kanban.html')
+
+@app.route('/factory')
+def factory():
+    """Render the GSAP Factory Floor Scrollytelling page"""
+    return render_template('factory.html')
+
+@app.route('/api/factory/story')
+def get_factory_story():
+    """Fetches a complete claim journey for the Factory visualization."""
+    from neo4j import GraphDatabase
+    import certifi
+    
+    uri = os.getenv("NEO4J_URI")
+    user = os.getenv("NEO4J_USER")
+    password = os.getenv("NEO4J_PASSWORD")
+    
+    os.environ['SSL_CERT_FILE'] = certifi.where()
+    
+    driver = GraphDatabase.driver(uri, auth=(user, password))
+    
+    try:
+        with driver.session() as session:
+            # Query for a complete story suitable for the factory
+            # We look for a Person -> Pet -> Vet mechanism
+            result = session.run("""
+                MATCH (p:Person)-[:OWNS]->(pet:Pet)<-[:INVOLVES]-(c:Claim)-[:FILED_AGAINST]->(pol:Policy)
+                OPTIONAL MATCH (pet)-[:VISITED]->(vet:VetPractice)-[:DIAGNOSED]->(d:Diagnosis)
+                RETURN p, pet, c, pol, vet, d
+                LIMIT 1
+            """)
+            
+            record = result.single()
+            if not record:
+                return jsonify({"status": "empty", "message": "No active claims found in the factory queue."})
+            
+            p = record['p']
+            pet = record['pet']
+            c = record['c']
+            pol = record['pol']
+            vet = record['vet']
+            d = record['d']
+            
+            story = {
+                "person": {
+                    "name": p.get('name', 'Unknown'),
+                    "id": p.get('id', '')
+                },
+                "pet": {
+                    "name": pet.get('name', 'Unknown'),
+                    "species": pet.get('species', 'Animal')
+                },
+                "policy": {
+                    "insurer": "Affinity", # Default for now if not in graph
+                    "number": pol.get('policy_number', 'N/A')
+                },
+                "event": {
+                    "vet_name": vet.get('name', 'Unknown Vet') if vet else "Unknown Vet",
+                    "diagnosis_code": d.get('code', 'DX-000') if d else "DX-000",
+                    "diagnosis_desc": d.get('description', 'Undiagnosed') if d else "Undiagnosed"
+                },
+                "claim": {
+                    "status": c.get('status', 'Pending'),
+                    "amount": "£984.50" # Placeholder or derived
+                }
+            }
+            
+            return jsonify({"status": "success", "story": story})
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        driver.close()
 
 @app.route('/api/kanban')
 def get_kanban_data():

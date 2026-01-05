@@ -42,6 +42,7 @@
             cursor: pointer;
             font-weight: bold;
             text-decoration: none;
+            display: inline-block;
         }
         .legend {
             position: absolute;
@@ -70,6 +71,10 @@
 <div class="controls">
     <a href="/board" class="btn">← Back to Board</a>
     <h1 style="margin-top: 20px;">🏢 Visual Organogram</h1>
+    <div style="margin-top: 10px;">
+        <button onclick="switchView('project')" class="btn" style="background: #38bdf8;">Project View</button>
+        <button onclick="switchView('business')" class="btn" style="background: #f59e0b;">Business View</button>
+    </div>
 </div>
 
 <div class="legend">
@@ -91,73 +96,120 @@
         .attr("height", height);
 
     const g = svg.append("g");
+    
+    // Legend Container
+    const legend = d3.select(".legend");
+
+    let simulation, link, node;
 
     // Zoom behavior
-    svg.call(d3.zoom().on("zoom", (event) => {
+    const zoom = d3.zoom().on("zoom", (event) => {
         g.attr("transform", event.transform);
-    }));
-
-    // Load data
-    d3.json("/api/organogram").then(data => {
-        const simulation = d3.forceSimulation(data.nodes)
-            .force("link", d3.forceLink(data.links).id(d => d.id).distance(100))
-            .force("charge", d3.forceManyBody().strength(-300))
-            .force("center", d3.forceCenter(width / 2, height / 2));
-
-        const link = g.append("g")
-            .attr("class", "links")
-            .selectAll("line")
-            .data(data.links)
-            .enter().append("line")
-            .attr("class", "link");
-
-        const node = g.append("g")
-            .attr("class", "nodes")
-            .selectAll("g")
-            .data(data.nodes)
-            .enter().append("g")
-            .call(d3.drag()
-                .on("start", dragstarted)
-                .on("drag", dragged)
-                .on("end", dragended));
-
-        node.append("circle")
-            .attr("r", d => d.type === 'Project' ? 12 : 8)
-            .attr("class", d => d.type);
-
-        node.append("text")
-            .attr("dx", 12)
-            .attr("dy", ".35em")
-            .text(d => d.label);
-
-        simulation.on("tick", () => {
-            link
-                .attr("x1", d => d.source.x)
-                .attr("y1", d => d.source.y)
-                .attr("x2", d => d.target.x)
-                .attr("y2", d => d.target.y);
-
-            node
-                .attr("transform", d => `translate(${d.x},${d.y})`);
-        });
-
-        function dragstarted(event, d) {
-            if (!event.active) simulation.alphaTarget(0.3).restart();
-            d.fx = d.x;
-            d.fy = d.y;
-        }
-
-        function dragged(event, d) {
-            d.fx = event.x;
-            d.fy = event.y;
-        }
-
-        function dragended(event, d) {
-            if (!event.active) simulation.alphaTarget(0);
-            d.fx = null;
-            d.fy = null;
-        }
     });
+    svg.call(zoom);
+
+    function loadData(url, type) {
+        d3.json(url).then(data => {
+            // Clear previous graph
+            g.selectAll("*").remove();
+
+            // Update Legend
+            if (type === 'project') {
+                legend.html(`
+                    <div class="legend-item"><div class="color-box" style="background: #f59e0b;"></div> Project</div>
+                    <div class="legend-item"><div class="color-box" style="background: #38bdf8;"></div> Domain</div>
+                    <div class="legend-item"><div class="color-box" style="background: #8b5cf6;"></div> Component</div>
+                    <div class="legend-item"><div class="color-box" style="background: #64748b;"></div> Task (Pending)</div>
+                    <div class="legend-item"><div class="color-box" style="background: #10b981;"></div> Task (Complete)</div>
+                `);
+            } else {
+                legend.html(`
+                    <div class="legend-item"><div class="color-box" style="background: #ef4444;"></div> Person</div>
+                    <div class="legend-item"><div class="color-box" style="background: #f97316;"></div> Pet</div>
+                    <div class="legend-item"><div class="color-box" style="background: #eab308;"></div> Claim</div>
+                    <div class="legend-item"><div class="color-box" style="background: #3b82f6;"></div> Policy</div>
+                    <div class="legend-item"><div class="color-box" style="background: #ec4899;"></div> Vet/Other</div>
+                `);
+            }
+
+            simulation = d3.forceSimulation(data.nodes)
+                .force("link", d3.forceLink(data.links).id(d => d.id).distance(100))
+                .force("charge", d3.forceManyBody().strength(-300))
+                .force("center", d3.forceCenter(width / 2, height / 2));
+
+            const linkElements = g.append("g")
+                .attr("class", "links")
+                .selectAll("line")
+                .data(data.links)
+                .enter().append("line")
+                .attr("class", "link");
+
+            const nodeElements = g.append("g")
+                .attr("class", "nodes")
+                .selectAll("g")
+                .data(data.nodes)
+                .enter().append("g")
+                .call(d3.drag()
+                    .on("start", dragstarted)
+                    .on("drag", dragged)
+                    .on("end", dragended));
+
+            nodeElements.append("circle")
+                .attr("r", d => d.type === 'Project' ? 12 : 8)
+                .attr("class", d => d.type)
+                .style("fill", d => {
+                    // Custom colors for Business Ontology
+                    if (d.type === 'Person') return '#ef4444';
+                    if (d.type === 'Pet') return '#f97316';
+                    if (d.type === 'Claim') return '#eab308';
+                    if (d.type === 'Policy') return '#3b82f6';
+                    if (['VetPractice', 'Address', 'Diagnosis', 'Insurer'].includes(d.type)) return '#ec4899';
+                    return null; // Fallback to CSS class
+                });
+
+            nodeElements.append("text")
+                .attr("dx", 12)
+                .attr("dy", ".35em")
+                .text(d => d.label);
+
+            simulation.on("tick", () => {
+                linkElements
+                    .attr("x1", d => d.source.x)
+                    .attr("y1", d => d.source.y)
+                    .attr("x2", d => d.target.x)
+                    .attr("y2", d => d.target.y);
+
+                nodeElements
+                    .attr("transform", d => `translate(${d.x},${d.y})`);
+            });
+
+            function dragstarted(event, d) {
+                if (!event.active) simulation.alphaTarget(0.3).restart();
+                d.fx = d.x;
+                d.fy = d.y;
+            }
+
+            function dragged(event, d) {
+                d.fx = event.x;
+                d.fy = event.y;
+            }
+
+            function dragended(event, d) {
+                if (!event.active) simulation.alphaTarget(0);
+                d.fx = null;
+                d.fy = null;
+            }
+        });
+    }
+
+    // Initial load
+    loadData("/api/organogram", "project");
+
+    // Listen for custom events if we add buttons later, or expose global function
+    window.switchView = (view) => {
+        if (view === 'business') loadData("/api/organogram/business", "business");
+        else loadData("/api/organogram", "project");
+    };
 
     window.addEventListener('resize', () => {
         svg.attr("width", window.innerWidth).attr("height", window.innerHeight);

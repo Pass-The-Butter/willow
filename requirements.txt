@@ -6,3 +6,4 @@ Faker==22.5.1
 atlassian-python-api==4.0.7
 Flask==3.0.0
 pymongo==4.6.1
+zep-python==1.5.0

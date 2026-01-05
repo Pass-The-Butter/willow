@@ -702,3 +702,49 @@ An always-on Project Manager agent ("Pingu") responsible for system visibility a
 - Integration with Slack API.
 - Read-access to all board APIs.
   **Value**: Solves "No visibility" issue.
+
+### 34. Multi-User Architecture & Personalization (Kid-Safe & Individual Graphs)
+
+**ID**: `idea-040`
+**Domain**: Architecture (Security/Personalization)
+**Complexity**: Very High
+**Status**: New
+**Description**:
+Architecture to support individual sign-ons and isolated conversation graphs for different users (e.g., The User vs The User's Son).
+**Requirements**:
+
+1.  **Identity Management**: Separate Auth/Sign-on for each user.
+2.  **Graph Segregation**: Users must have their own "Memory Graph" (preferences, past conversations) that is **NOT shared** with others.
+3.  **Shared vs Private**: Some context (Project Willow) is shared; Personal memories are private.
+4.  **Interface Adaptation**: API/Web Interface must load the correct "User Profile" on connection.
+    **Trigger**: User wants their son to be able to talk to Willow without messing up the main "Willow Project" context or seeing the User's private notes.
+    **Value**: True multi-tenancy and personalization; Safety for family usage.
+
+**Suggested Stack**:
+
+- **Zep**: For long-term conversational memory and user segmentation.
+- **Graphiti**: For dynamic graph generation and knowledge retrieval per user context.
+
+**Memory Security Model**:
+
+- **Additive Only**: Users can _add_ new memories but cannot _modify_ or _delete_ memories created by others.
+
+### 35. Neurosymbolic "Business Process as Code"
+
+**ID**: `idea-041`
+**Domain**: Strategy (Sales/Architecture)
+**Complexity**: High
+**Status**: Implemented (Prototype Phase)
+**Description**:
+The core architectural differentiator for Willow. "Neurosymbolic AI turns your claims system into a brain with a rulebook."
+**Key Phrases**:
+
+- **"Business Process as Code"**: Workflows are executable, versioned software (Temporal).
+- **"Glass Box AI"**: Transparent decisioning, not black-box magic.
+- **"The Brain with a Rulebook"**: LLMs read/perceive; Graph/Code decides.
+  **Implementation**:
+- **Temporal** for orchestration.
+- **Neo4j** for symbolic reasoning.
+- **LLMs** for perception/fact extraction.
+  **Value**: Huge sales differentiator. Auditability + Agility.
+  Links to: `docs/NEUROSYMBOLIC_ARCHITECTURE.md`
