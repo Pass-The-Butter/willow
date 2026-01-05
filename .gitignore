@@ -4,3 +4,4 @@ __pycache__/
 *.pyc
 .DS_Store
 venv/
+neo4j_audit_output.json
