@@ -152,8 +152,8 @@ def deploy():
         print("🚀 Launching Gateway Service...")
         
         # If using ./docker-compose, we must be in the dir
-        # We only deploy willow-gateway to avoid sidebar build errors for now
-        cmd = f"cd {REMOTE_DIR} && {compose_cmd_prefix} up -d --build willow-gateway"
+        # We deploy gateway, dashboard, and proxy to ensure visualization is live
+        cmd = f"cd {REMOTE_DIR} && {compose_cmd_prefix} up -d --build willow-gateway dashboard proxy"
         
         run_command(client, cmd)
         

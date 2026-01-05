@@ -288,7 +288,7 @@ services:
       - dashboard
       - n8n
       - graphiti
-      - sidebar
+      # - sidebar
     networks:
       - willow-network
 
