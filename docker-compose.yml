@@ -141,6 +141,33 @@ services:
 
   # --- ACCESSORY SERVICES ---
 
+  # Redpanda (Event Backbone - Kafka Compatible)
+  redpanda:
+    image: docker.redpanda.com/redpandadata/redpanda:v23.3.10
+    container_name: willow-redpanda
+    ports:
+      - "18081:18081"
+      - "9092:9092"
+    command:
+      - redpanda
+      - start
+      - --smp 1
+      - --memory 1G
+      - --reserve-memory 0M
+      - --overprovisioned
+      - --node-id 0
+      - --check=false
+      - --kafka-addr PLAINTEXT://0.0.0.0:29092,OUTSIDE://0.0.0.0:9092
+      - --advertise-kafka-addr PLAINTEXT://redpanda:29092,OUTSIDE://localhost:9092
+      - --pandaproxy-addr 0.0.0.0:28082
+      - --advertise-pandaproxy-addr localhost:28082
+      - --rpc-addr 0.0.0.0:33145
+      - --advertise-rpc-addr redpanda:33145
+    volumes:
+      - redpanda_data:/var/lib/redpanda/data
+    networks:
+      - willow-network
+
   # Temporal (Orchestrator)
   temporal:
     image: temporalio/auto-setup:1.22.3
@@ -271,6 +298,7 @@ volumes:
   zep_db_data:
   temporal_db_data:
   mongo_data:
+  redpanda_data:
 
 networks:
   willow-network:
