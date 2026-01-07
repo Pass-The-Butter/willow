@@ -20,6 +20,23 @@ services:
       - ./core/skills:/skills:ro
       - ./domains:/domains:ro
 
+  # Local Neo4j (Backup / Offline Brain)
+  local-neo4j:
+    image: neo4j:5.12-community
+    container_name: willow-backup-brain
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    environment:
+      - NEO4J_AUTH=neo4j/${NEO4J_BACKUP_PASSWORD:-willow_backup}
+      - NEO4J_dbms_memory_pagecache_size=512M
+      - NEO4J_dbms_memory_heap_initial__size=512M
+      - NEO4J_dbms_memory_heap_max__size=1G
+    volumes:
+      - local_neo4j_data:/data
+    networks:
+      - willow-network
+
   # Skill execution API
   willow-api:
     build:
@@ -33,7 +50,7 @@ services:
       - NEO4J_USER=${NEO4J_USER}
       - NEO4J_PASSWORD=${NEO4J_PASSWORD}
     extra_hosts:
-      - "bunny:100.105.129.101" # Tailscale IP for Xeon Server
+      - "bunny:100.125.5.90" # Tailscale IP for Xeon Server
     networks:
       - willow-network
     volumes:
@@ -70,7 +87,7 @@ services:
       context: ./domains/interface
     container_name: willow-dashboard
     ports:
-      - "5001:5001"
+      - "5005:5001"
     environment:
       - PG_HOST=population-db
       - PG_PORT=5432
@@ -288,7 +305,7 @@ services:
       - dashboard
       - n8n
       - graphiti
-      # - sidebar
+      - sidebar
     networks:
       - willow-network
 
@@ -299,6 +316,7 @@ volumes:
   temporal_db_data:
   mongo_data:
   redpanda_data:
+  local_neo4j_data:
 
 networks:
   willow-network:

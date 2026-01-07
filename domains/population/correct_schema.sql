@@ -4,12 +4,11 @@ CREATE EXTENSION IF NOT EXISTS vector;
 -- Reset Schema
 DROP TABLE IF EXISTS claims CASCADE;
 DROP TABLE IF EXISTS quotes CASCADE;
-DROP TABLE IF EXISTS people CASCADE;
 DROP TABLE IF EXISTS pets CASCADE;
 DROP TABLE IF EXISTS customers CASCADE;
 
 -- ============================================
--- CUSTOMERS TABLE (Matches Purely Pets Quote Form)
+-- CUSTOMERS TABLE
 -- ============================================
 CREATE TABLE customers (
     id SERIAL PRIMARY KEY,
@@ -37,13 +36,13 @@ CREATE INDEX idx_customers_city ON customers(city);
 CREATE INDEX idx_customers_email ON customers(email);
 
 -- ============================================
--- PETS TABLE (Matches Purely Pets Pet Details)
+-- PETS TABLE
 -- ============================================
 CREATE TABLE pets (
     id SERIAL PRIMARY KEY,
     customer_id INTEGER NOT NULL REFERENCES customers(id) ON DELETE CASCADE,
 
-    -- Pet Details (from quote form)
+    -- Pet Details
     pet_name VARCHAR(100) NOT NULL,
     species VARCHAR(50) NOT NULL CHECK (species IN ('Dog', 'Cat')),
     breed VARCHAR(100) NOT NULL,
@@ -61,3 +60,53 @@ CREATE TABLE pets (
 CREATE INDEX idx_pets_customer ON pets(customer_id);
 CREATE INDEX idx_pets_species ON pets(species);
 CREATE INDEX idx_pets_breed ON pets(breed);
+
+-- ============================================
+-- QUOTES TABLE
+-- ============================================
+CREATE TABLE quotes (
+    id SERIAL PRIMARY KEY,
+    customer_id INTEGER NOT NULL REFERENCES customers(id),
+    pet_id INTEGER NOT NULL REFERENCES pets(id),
+
+    -- Quote preferences
+    cover_type VARCHAR(50) NOT NULL CHECK (cover_type IN ('Accident Only', 'Time Limited', 'Lifetime')),
+    excess_amount DECIMAL(10,2) NOT NULL,
+    vet_fee_limit DECIMAL(10,2) NOT NULL,
+
+    -- Pricing
+    monthly_premium DECIMAL(10,2) NOT NULL,
+    annual_premium DECIMAL(10,2) NOT NULL,
+
+    -- Status
+    status VARCHAR(50) DEFAULT 'generated' CHECK (status IN ('generated', 'accepted', 'rejected', 'expired')),
+
+    -- Metadata
+    created_at TIMESTAMP DEFAULT NOW(),
+    expires_at TIMESTAMP DEFAULT NOW() + INTERVAL '30 days'
+);
+
+CREATE INDEX idx_quotes_customer ON quotes(customer_id);
+CREATE INDEX idx_quotes_status ON quotes(status);
+
+-- ============================================
+-- CLAIMS TABLE
+-- ============================================
+CREATE TABLE claims (
+    id SERIAL PRIMARY KEY,
+    customer_id INTEGER NOT NULL REFERENCES customers(id),
+    pet_id INTEGER NOT NULL REFERENCES pets(id),
+    quote_id INTEGER REFERENCES quotes(id),
+    
+    incident_date DATE NOT NULL,
+    report_date DATE NOT NULL,
+    claim_amount DECIMAL(10,2) NOT NULL,
+    status VARCHAR(50) DEFAULT 'FILED' CHECK (status IN ('FILED', 'INVESTIGATING', 'APPROVED', 'PAID', 'DENIED')),
+    description TEXT,
+    
+    -- Metadata
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX idx_claims_customer ON claims(customer_id);
+CREATE INDEX idx_claims_status ON claims(status);

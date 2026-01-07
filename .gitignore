@@ -4,4 +4,9 @@ __pycache__/
 *.pyc
 .DS_Store
 venv/
+node_modules/
+*.log
+env.offline
 neo4j_audit_output.json
+artifacts/evidence/
+custom_evidence/

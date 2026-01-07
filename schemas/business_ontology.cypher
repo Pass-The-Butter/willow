@@ -11,6 +11,7 @@ CREATE CONSTRAINT policy_number_unique IF NOT EXISTS FOR (p:Policy) REQUIRE p.po
 CREATE CONSTRAINT claim_reference_unique IF NOT EXISTS FOR (c:Claim) REQUIRE c.reference_number IS UNIQUE;
 CREATE CONSTRAINT vet_practice_id_unique IF NOT EXISTS FOR (v:VetPractice) REQUIRE v.id IS UNIQUE;
 CREATE CONSTRAINT pet_id_unique IF NOT EXISTS FOR (p:Pet) REQUIRE p.id IS UNIQUE;
+CREATE CONSTRAINT decision_id_unique IF NOT EXISTS FOR (d:Decision) REQUIRE d.id IS UNIQUE;
 
 // ============================================
 // INDEXES
@@ -38,6 +39,7 @@ CREATE INDEX diagnosis_code IF NOT EXISTS FOR (d:Diagnosis) ON (d.code);
 // - Document: {type, content, timestamp}
 // - Interaction: {type, notes, timestamp}
 // - Agent: {name, role}
+// - Decision: {id, decision, reason, timestamp}
 
 // Relationships:
 // (:Person)-[:LIVES_AT]->(:Address)
@@ -49,6 +51,7 @@ CREATE INDEX diagnosis_code IF NOT EXISTS FOR (d:Diagnosis) ON (d.code);
 // (:Policy)-[:INSURED_BY]->(:Insurer)
 // (:Claim)-[:FILED_AGAINST]->(:Policy)
 // (:Claim)-[:INVOLVES]->(:Pet)
+// (:Claim)-[:CONCERNS]->(:Pet) // Legacy/Visualization Bridge
 // (:Pet)-[:VISITED]->(:VetPractice)
 // (:VetPractice)-[:DIAGNOSED]->(:Diagnosis)
 // (:Diagnosis)-[:FOR]->(:Pet)
@@ -56,3 +59,4 @@ CREATE INDEX diagnosis_code IF NOT EXISTS FOR (d:Diagnosis) ON (d.code);
 // (:Broker)-[:CONTACTED]->(:VetPractice)
 // (:Assessor)-[:ASSESSED]->(:Claim)
 // (:Agent)-[:RESEARCHED]->(:Diagnosis)
+// (:Decision)-[:DECIDED_ON]->(:Claim)

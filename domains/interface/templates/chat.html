@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Willow Command Center</title>
+    <!-- GSAP & D3 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=JetBrains+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --sidebar-bg: #111827;
+            --accent-glow: rgba(56, 189, 248, 0.4);
+            --accent-main: #38bdf8;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --card-bg: #1e293b;
+            --user-msg: #334155;
+            --willow-msg: #1e293b;
+        }
+
+        * {
+            box-sizing: border-box;
+            transition: all 0.2s ease;
+        }
+
+        body {
+            margin: 0;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            font-family: 'Outfit', sans-serif;
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* Sidebar Navigation */
+        .sidebar {
+            width: 260px;
+            background: var(--sidebar-bg);
+            border-right: 1px solid #1f2937;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        .sidebar-brand {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 40px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--accent-main);
+        }
+
+        .nav-item {
+            padding: 12px 16px;
+            border-radius: 8px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            background: rgba(56, 189, 248, 0.1);
+            color: var(--accent-main);
+        }
+
+        /* Main Chat Area */
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .chat-header {
+            padding: 20px 40px;
+            border-bottom: 1px solid #1f2937;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-history {
+            flex: 1;
+            overflow-y: auto;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            scroll-behavior: smooth;
+        }
+
+        /* Messages */
+        .message {
+            max-width: 80%;
+            display: flex;
+            gap: 16px;
+        }
+
+        .message.user {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+
+        .avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .avatar.willow { background: var(--accent-main); color: var(--bg-color); }
+        .avatar.user { background: #6366f1; color: white; }
+
+        .bubble {
+            padding: 16px;
+            border-radius: 12px;
+            line-height: 1.5;
+            font-size: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+
+        .message.willow .bubble {
+            background: var(--willow-msg);
+            border: 1px solid #334155;
+        }
+
+        .message.user .bubble {
+            background: var(--user-msg);
+            color: white;
+        }
+
+        /* Rich Components */
+        .rich-card {
+            margin-top: 12px;
+            background: #0f172a;
+            border-radius: 12px;
+            border: 1px solid #334155;
+            padding: 20px;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        /* Input Area */
+        .input-area {
+            padding: 20px 40px 40px;
+            position: relative;
+        }
+
+        .input-box {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 16px;
+            padding: 16px 24px;
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3);
+        }
+
+        .input-box input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 1rem;
+            outline: none;
+        }
+
+        .send-btn {
+            background: var(--accent-main);
+            color: var(--bg-color);
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Chart Styling */
+        .chart-container {
+            width: 100%;
+            height: 300px;
+        }
+
+        .bar {
+            fill: var(--accent-main);
+            rx: 4;
+        }
+
+        .bar:hover {
+            fill: #7dd3fc;
+        }
+
+        .axis-label {
+            fill: var(--text-secondary);
+            font-size: 12px;
+        }
+
+        #stock-display {
+            font-size: 3rem;
+            font-weight: 600;
+            color: var(--accent-main);
+            margin: 10px 0;
+        }
+
+        .pulse {
+            animation: pulse-animation 2s infinite;
+        }
+
+        @keyframes pulse-animation {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.8; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <i class="fas fa-brain"></i>
+            <span>Willow AI</span>
+        </div>
+        
+        <nav>
+            <a href="/board" class="nav-item">
+                <i class="fas fa-th-large"></i>
+                <span>Mission Control</span>
+            </a>
+            <a href="/chat" class="nav-item active">
+                <i class="fas fa-terminal"></i>
+                <span>Command Center</span>
+            </a>
+            <a href="/factory" class="nav-item">
+                <i class="fas fa-industry"></i>
+                <span>Claims Factory</span>
+            </a>
+            <a href="/organogram" class="nav-item">
+                <i class="fas fa-sitemap"></i>
+                <span>Organogram</span>
+            </a>
+        </nav>
+
+        <div style="margin-top: auto;">
+            <div style="background: rgba(56, 189, 248, 0.1); padding: 16px; border-radius: 12px; border: 1px solid rgba(56, 189, 248, 0.2);">
+                <span style="font-size: 0.8rem; color: var(--accent-main);">AUGMENTED MEMORY</span>
+                <p style="font-size: 0.7rem; color: var(--text-secondary); margin: 4px 0 0;">Cognitive link active to AuraDB. 2026-01-05 session synced.</p>
+            </div>
+        </div>
+    </aside>
+
+    <main class="chat-container">
+        <header class="chat-header">
+            <div>
+                <h2 style="margin: 0; font-size: 1.2rem;">Willow Chat v2.0</h2>
+                <span style="font-size: 0.8rem; color: var(--text-secondary);">Role: Captain / Architect</span>
+            </div>
+            <div id="connection-status">
+                <i class="fas fa-circle" style="color: #10b981; font-size: 8px;"></i>
+                <span style="font-size: 0.8rem; margin-left: 6px;">Connected to Brain</span>
+            </div>
+        </header>
+
+        <div class="chat-history" id="chat-history">
+            <!-- Initial Message -->
+            <div class="message willow">
+                <div class="avatar willow"><i class="fas fa-robot"></i></div>
+                <div class="bubble">
+                    I am Willow. I have <strong>Full Access</strong> to the Brain and Repo. Verified: Temporal Workers are running background protocols. 
+                    <br><br>
+                    <strong>Augmentation:</strong> Successful. Project state synchronized.
+                    <br><br>
+                    Ready to build. What is your wish?
+                </div>
+            </div>
+        </div>
+
+        <div class="input-area">
+            <div class="input-box">
+                <input type="text" id="user-input" placeholder="Type a command (e.g., 'show stock' or 'performance chart')..." autocomplete="off">
+                <button class="send-btn" id="send-btn">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const chatHistory = document.getElementById('chat-history');
+        const userInput = document.getElementById('user-input');
+        const sendBtn = document.getElementById('send-btn');
+
+        function appendMessage(role, content, isRich = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${role}`;
+            
+            const avatar = document.createElement('div');
+            avatar.className = `avatar ${role}`;
+            avatar.innerHTML = role === 'willow' ? '<i class="fas fa-robot"></i>' : '<i class="fas fa-user"></i>';
+            
+            const bubble = document.createElement('div');
+            bubble.className = 'bubble';
+            bubble.innerHTML = content;
+            
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(bubble);
+            
+            chatHistory.appendChild(messageDiv);
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+
+            // GSAP entrance
+            gsap.from(messageDiv, {
+                opacity: 0,
+                y: 20,
+                duration: 0.5,
+                ease: "power2.out"
+            });
+
+            return messageDiv;
+        }
+
+        async function handleInput() {
+            const text = userInput.value.trim();
+            if (!text) return;
+
+            userInput.value = '';
+            appendMessage('user', text);
+
+            // Command Router
+            const lowerText = text.toLowerCase();
+            
+            if (lowerText.startsWith('summarize')) {
+                const ref = text.split(' ')[1];
+                if (!ref) appendMessage('willow', "Please provide a Claim Reference (e.g., `summarize CLM-STOCK-P-1234`).");
+                else showClaimSummary(ref);
+            } else if (lowerText.startsWith('assess')) {
+                const parts = text.split(' ');
+                const ref = parts[1];
+                const note = parts.slice(2).join(' ');
+                if (!ref || !note) appendMessage('willow', "Format: `assess CLM-REF your note here...`.");
+                else assessNote(ref, note);
+            } else if (lowerText.includes('stock')) {
+                showStock();
+            } else if (lowerText.includes('performance') || lowerText.includes('chart')) {
+                showPerformanceChart();
+            } else {
+                appendMessage('willow', "I'm monitoring the Insurance Factory. Available commands:<br>• **show stock**: Robin's inventory<br>• **performance chart**: Assessor velocity<br>• **summarize [REF]**: Claim check<br>• **assess [REF] [NOTE]**: Relevance check (Apollo-1)");
+            }
+        }
+
+        async function showClaimSummary(ref) {
+            appendMessage('willow', `Fetching enriched summary for **${ref}**...`);
+            try {
+                const response = await fetch(`/api/assessor/summary/${ref}`);
+                const data = await response.json();
+                
+                if (data.error) throw new Error(data.error);
+
+                const historyHtml = data.medical_history.map(h => `<li>${h.vet}: ${h.diagnosis} (<code>${h.code}</code>)</li>`).join('') || "No history found.";
+
+                const richContent = `
+                    <div class="rich-card">
+                        <div style="font-size: 0.9rem; color: var(--accent-main);">CLAIM SUMMARY: ${ref}</div>
+                        <div style="margin-top: 15px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                            <div>
+                                <h4 style="margin: 0;">Customer</h4>
+                                <p style="font-size: 0.9rem;">${data.customer.name}<br>${data.customer.email}</p>
+                            </div>
+                            <div>
+                                <h4 style="margin: 0;">Pet</h4>
+                                <p style="font-size: 0.9rem;">${data.pet.name} (${data.pet.species})</p>
+                            </div>
+                        </div>
+                        <h4 style="margin-top: 15px; margin-bottom: 5px;">Enriched Medical History</h4>
+                        <ul style="font-size: 0.85rem; padding-left: 20px;">${historyHtml}</ul>
+                    </div>
+                `;
+                appendMessage('willow', richContent, true);
+            } catch (err) {
+                appendMessage('willow', "Error: " + err.message);
+            }
+        }
+
+        async function assessNote(ref, note) {
+            appendMessage('willow', `Running Neurosymbolic Relevance Check for **${ref}**...`);
+            try {
+                const response = await fetch('/api/assessor/assess_note', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({claim_ref: ref, note: note})
+                });
+                const data = await response.json();
+                
+                if (data.error) throw new Error(data.error);
+
+                const scoreColor = data.relevance_score > 0.7 ? '#10b981' : data.relevance_score > 0.4 ? '#f59e0b' : '#ef4444';
+                const findingsHtml = data.findings.map(f => `<li><i class="fas fa-check-circle" style="color: ${scoreColor}"></i> ${f}</li>`).join('');
+
+                const richContent = `
+                    <div class="rich-card" style="border-left: 4px solid ${scoreColor}">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 0.9rem; font-weight: 600;">APOLLO-1 ASSESSMENT</span>
+                            <span style="background: ${scoreColor}; color: #000; padding: 2px 8px; border-radius: 99px; font-size: 0.7rem; font-weight: bold;">
+                                RELEVANCE: ${data.relevance_summary} (${Math.round(data.relevance_score * 100)}%)
+                            </span>
+                        </div>
+                        <p style="font-style: italic; font-size: 0.85rem; color: var(--text-secondary); margin-top: 10px;">"${data.original_note}"</p>
+                        <ul style="list-style: none; padding: 0; font-size: 0.9rem; margin-top: 15px;">${findingsHtml}</ul>
+                        <div style="margin-top: 15px; border-top: 1px solid #334155; padding-top: 10px; font-size: 0.8rem; color: #10b981;">
+                            <i class="fas fa-microchip"></i> Heuristic: ${data.system_instruction}
+                        </div>
+                    </div>
+                `;
+                appendMessage('willow', richContent, true);
+            } catch (err) {
+                appendMessage('willow', "Error: " + err.message);
+            }
+        }
+
+        async function showStock() {
+            appendMessage('willow', "Understood, Robin. Retrieving current stock levels from the claims queue...");
+            
+            try {
+                const response = await fetch('/api/ops/stock');
+                const data = await response.json();
+                
+                const richContent = `
+                    <div class="rich-card">
+                        <div style="font-size: 0.9rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px;">Outstanding Claims (Stock)</div>
+                        <div id="stock-display" class="pulse">${data.stock}</div>
+                        <div style="font-size: 0.8rem; color: #10b981;">
+                            <i class="fas fa-clock"></i> As of ${data.last_updated}
+                        </div>
+                        <p style="margin-top: 15px; font-size: 0.9rem;">
+                            The factory is currently processing these items. Claims are considered income as we assess them for our partners.
+                        </p>
+                    </div>
+                `;
+                appendMessage('willow', richContent, true);
+            } catch (err) {
+                appendMessage('willow', "Error retrieving stock: " + err);
+            }
+        }
+
+        async function showPerformanceChart() {
+            appendMessage('willow', "Generating the Performance Analysis for last week... Calculating average claims per FTE per hour.");
+            
+            try {
+                const response = await fetch('/api/ops/performance');
+                const data = await response.json();
+                
+                const cardId = 'chart-' + Date.now();
+                const richContent = `
+                    <div class="rich-card">
+                        <h3 style="margin-top: 0; color: var(--accent-main);">${data.metric}</h3>
+                        <p style="font-size: 0.8rem; color: var(--text-secondary);">${data.period}</p>
+                        <div class="chart-container" id="${cardId}"></div>
+                    </div>
+                `;
+                appendMessage('willow', richContent, true);
+                
+                setTimeout(() => renderD3Chart(cardId, data.data), 100);
+            } catch (err) {
+                appendMessage('willow', "Error generating chart: " + err);
+            }
+        }
+
+        function renderD3Chart(containerId, data) {
+            const container = document.getElementById(containerId);
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+            const margin = {top: 20, right: 30, bottom: 40, left: 40};
+
+            const svg = d3.select(`#${containerId}`)
+                .append("svg")
+                .attr("width", width)
+                .attr("height", height);
+
+            // Prepare aggregate data (average assessed per person)
+            const aggData = data.map(d => ({
+                name: d.name,
+                value: d3.mean(d.assessed)
+            }));
+
+            const x = d3.scaleBand()
+                .domain(aggData.map(d => d.name))
+                .range([margin.left, width - margin.right])
+                .padding(0.3);
+
+            const y = d3.scaleLinear()
+                .domain([0, d3.max(aggData, d => d.value) * 1.2])
+                .nice()
+                .range([height - margin.bottom, margin.top]);
+
+            // X Axis
+            svg.append("g")
+                .attr("transform", `translate(0,${height - margin.bottom})`)
+                .call(d3.axisBottom(x).tickSize(0).tickPadding(10))
+                .call(g => g.select(".domain").attr("stroke", "#334155"))
+                .selectAll("text")
+                .attr("class", "axis-label");
+
+            // Bars
+            svg.selectAll(".bar")
+                .data(aggData)
+                .join("rect")
+                .attr("class", "bar")
+                .attr("x", d => x(d.name))
+                .attr("width", x.bandwidth())
+                .attr("y", height - margin.bottom)
+                .attr("height", 0)
+                .transition()
+                .duration(1000)
+                .delay((d, i) => i * 100)
+                .attr("y", d => y(d.value))
+                .attr("height", d => y(0) - y(d.value));
+
+            // Labels on top
+            svg.selectAll(".label")
+                .data(aggData)
+                .join("text")
+                .attr("x", d => x(d.name) + x.bandwidth() / 2)
+                .attr("y", d => y(d.value) - 10)
+                .attr("text-anchor", "middle")
+                .style("fill", "white")
+                .style("font-size", "12px")
+                .style("opacity", 0)
+                .text(d => d.value.toFixed(1))
+                .transition()
+                .duration(1000)
+                .delay((d, i) => i * 100 + 500)
+                .style("opacity", 1);
+        }
+
+        sendBtn.addEventListener('click', handleInput);
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleInput();
+        });
+
+    </script>
+</body>
+</html>

@@ -91,8 +91,8 @@ def deploy():
 
     try:
         # 1. Prepare Remote Directory
-        print("Preparing remote directory...")
-        run_command(client, f"mkdir -p {REMOTE_DIR}")
+        print("Preparing remote directory and cleaning legacy hidden files...")
+        run_command(client, f"mkdir -p {REMOTE_DIR} && find {REMOTE_DIR} -name '._*' -delete || true")
         
         # 2. Create optimized tarball locally
         print("Creating deployment package (filtering node_modules, etc)...")
@@ -125,13 +125,15 @@ def deploy():
             "--exclude='__pycache__'", 
             "--exclude='.git'", 
             "--exclude='.DS_Store'",
+            "--exclude='._*'",
             "--exclude='.venv'",
             "-czf", "deploy_package.tar.gz",
             "docker-compose.yml", ".env.deploy", "core", "domains", "infrastructure", "Inbox"
         ]
-        # Run tar command locally
+        # Run tar command locally with COPYFILE_DISABLE=1 to avoid AppleDouble (._) files
         import subprocess
-        subprocess.check_call(" ".join(tar_cmd), shell=True, cwd=str(REPO_ROOT))
+        full_tar_cmd = f"COPYFILE_DISABLE=1 {' '.join(tar_cmd)}"
+        subprocess.check_call(full_tar_cmd, shell=True, cwd=str(REPO_ROOT))
         
         # 3. Upload Tarball
         print(f"Uploading deployment package to {REMOTE_DIR}...")
@@ -153,7 +155,11 @@ def deploy():
         
         # If using ./docker-compose, we must be in the dir
         # We deploy gateway, dashboard, and proxy to ensure visualization is live
-        cmd = f"cd {REMOTE_DIR} && {compose_cmd_prefix} up -d --build willow-gateway dashboard proxy"
+        # NUCLEAR OPTION: Force remove conflicting containers by name AND kill port hogs
+        cleanup_cmd = "docker rm -f willow-population-db willow-dashboard willow-proxy willow-gateway willow-n8n willow-graphiti || true; lsof -t -i:5001 | xargs kill -9 || true"
+        run_command(client, cleanup_cmd)
+        
+        cmd = f"cd {REMOTE_DIR} && {compose_cmd_prefix} up -d --build willow-gateway dashboard sidebar proxy"
         
         run_command(client, cmd)
         

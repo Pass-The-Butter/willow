@@ -93,25 +93,33 @@
   - [x] Diarise Request & Vision <!-- id: 32 -->
 
 - [/] **Phase 11: Insurance Factory Visualization** <!-- id: 33 -->
+
   - [x] Plan Scrollytelling Experience (GSAP) <!-- id: 34 -->
   - [x] Implement `/factory` endpoint in Flask <!-- id: 35 -->
   - [x] Create `factory.html` with GSAP animations <!-- id: 36 -->
+  - [ ] Implement Robin's "Stock" Dashboard (GSAP/D3 Bar Charts) <!-- id: 46 -->
+  - [ ] Implement Claims Assessor "Summarization" View in Chat <!-- id: 47 -->
   - [ ] Verify accessibility and flow <!-- id: 37 -->
 
-- [ ] **Phase 12: Deep Research Agent** <!-- id: 38 -->
-  - [ ] Get Gemini API key from AI Studio <!-- id: 39 -->
-  - [ ] Get Brave Search API key (free tier) <!-- id: 40 -->
-  - [ ] Deploy AuraDB schema (`bootstrap/deploy_research_schema.py`) <!-- id: 41 -->
-  - [ ] Create N8N workflow (`bootstrap/deep_research_workflow.json`) <!-- id: 42 -->
-    - [ ] Telegram trigger node
-    - [ ] Groq intent classifier
-    - [ ] Brave Search integration
-    - [ ] Semantic Scholar integration
-    - [ ] arXiv integration
-    - [ ] Gemini synthesis node
-    - [ ] AuraDB write nodes
-    - [ ] Telegram notification
-  - [ ] Test with sample query: "AI Agent Memory Architectures" <!-- id: 43 -->
-  - [ ] Verify < $5/month running costs <!-- id: 44 -->
+- [ ] **Phase 13: Neurosymbolic Self-Betterment (Apollo-1)** <!-- id: 48 -->
+
+  - [ ] Research AUI.io style interaction models <!-- id: 49 -->
+  - [ ] Implement "Human-in-the-Loop" Enrichment Skill <!-- id: 50 -->
+  - [ ] Create Heuristic Refinement loop based on diary logs <!-- id: 51 -->
+
+- [x] **Phase 12: Deep Research Agent** <!-- id: 38 -->
+  - [x] Get Gemini API key from AI Studio <!-- id: 39 -->
+  - [x] Get Brave Search API key (free tier) <!-- id: 40 -->
+  - [x] Deploy AuraDB schema (`bootstrap/deploy_research_schema.py`) <!-- id: 41 -->
+  - [x] Create Deep Research Skill (`core/skills/research_agent.py`) <!-- id: 42 -->
+    - [x] Brave Search integration (5 results)
+    - [x] Semantic Scholar integration (rate limited but handled)
+    - [x] arXiv integration (3 papers)
+    - [x] Gemini synthesis (479-word report)
+    - [x] AuraDB storage with local JSON fallback
+  - [x] Test with sample query: "Top 3 AI Agent Memory Architectures" <!-- id: 43 -->
+  - [x] Verify $0 running costs <!-- id: 44 -->
+  - [ ] Create N8N workflow for Telegram integration <!-- id: 45 -->
+  - **Implementation**: `docs/DEEP_RESEARCH_AGENT_IMPLEMENTATION.md`
   - **Spec**: `docs/specs/DEEP_RESEARCH_AGENT_SPEC.md`
   - **Plan**: `.github/prompts/plan-deepResearchAgent.prompt.md`

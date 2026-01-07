@@ -8,6 +8,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/MotionPathPlugin.min.js"></script>
+    <!-- D3.js -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
     
     <style>
         :root {
@@ -142,9 +144,25 @@
                  T 900,950" 
               fill="none" stroke="#334155" stroke-width="4" stroke-dasharray="10,10"/>
         
+        <!-- Data Pulses (Background Movement) -->
+        <circle r="4" fill="#38bdf8" opacity="0.4">
+            <animateMotion dur="8s" repeatCount="indefinite">
+                <mpath href="#factory-path"/>
+            </animateMotion>
+        </circle>
+        <circle r="3" fill="#818cf8" opacity="0.3">
+            <animateMotion dur="11s" repeatCount="indefinite" begin="2s">
+                <mpath href="#factory-path"/>
+            </animateMotion>
+        </circle>
+
         <!-- The Claim Packet -->
         <rect id="claim-packet" x="-20" y="-15" width="40" height="30" rx="5" />
     </svg>
+
+    <div style="position: fixed; bottom: 20px; right: 20px; z-index: 100;">
+        <a href="/reports/insurance-factory-assessment" class="btn" style="background: rgba(56, 189, 248, 0.2); backdrop-filter: blur(4px); border: 1px solid var(--accent); color: var(--accent);">📄 View Full Assessment</a>
+    </div>
 
     <!-- Section 1: Introduction -->
     <section class="section center-align">
@@ -224,7 +242,16 @@
         </div>
     </section>
 
-    <!-- Section 6: Settlement -->
+    <!-- Section 6: Dynamic Graph -->
+    <section class="section center-align">
+        <div class="card step-graph" style="border-color: #8b5cf6; width: 600px;">
+            <h2>6. Live Knowledge Graph</h2>
+            <p>The <strong>ego-graph</strong> for this claim.</p>
+            <div id="d3-graph" style="width: 100%; height: 300px; background: #0f172a; border-radius: 8px; overflow: hidden;"></div>
+        </div>
+    </section>
+
+    <!-- Section 7: Settlement -->
     <section class="section right-align">
         <div class="card step-5">
             <h2>5. Settlement</h2>

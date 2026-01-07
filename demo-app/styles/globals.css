@@ -1,0 +1,70 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --willow-sage: #8B9D83;
+  --willow-terracotta: #C17A5C;
+  --willow-cream: #F5F1E8;
+  --willow-bark: #5C4A3D;
+  --willow-moss: #6B7F5B;
+}
+
+body {
+  background: var(--willow-cream);
+  color: var(--willow-bark);
+}
+
+.gradient-hero {
+  background: linear-gradient(135deg, var(--willow-sage) 0%, var(--willow-moss) 100%);
+}
+
+.card {
+  @apply bg-white rounded-xl shadow-lg p-6;
+}
+
+.btn-primary {
+  @apply bg-willow-terracotta text-white px-6 py-3 rounded-lg font-semibold hover:opacity-90 transition;
+}
+
+.btn-secondary {
+  @apply bg-willow-sage text-white px-6 py-3 rounded-lg font-semibold hover:opacity-90 transition;
+}
+
+/* Animated reasoning chain */
+.reasoning-step {
+  animation: fadeInUp 0.5s ease-out forwards;
+  opacity: 0;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.reasoning-step:nth-child(1) { animation-delay: 0.1s; }
+.reasoning-step:nth-child(2) { animation-delay: 0.3s; }
+.reasoning-step:nth-child(3) { animation-delay: 0.5s; }
+.reasoning-step:nth-child(4) { animation-delay: 0.7s; }
+.reasoning-step:nth-child(5) { animation-delay: 0.9s; }
+
+/* Graph visualization styling */
+.node {
+  @apply rounded-lg p-3 text-sm font-medium;
+}
+
+.node-claim { @apply bg-blue-100 text-blue-800 border-2 border-blue-300; }
+.node-policy { @apply bg-green-100 text-green-800 border-2 border-green-300; }
+.node-rule { @apply bg-amber-100 text-amber-800 border-2 border-amber-300; }
+.node-decision { @apply bg-purple-100 text-purple-800 border-2 border-purple-300; }
+.node-human { @apply bg-pink-100 text-pink-800 border-2 border-pink-300; }
+
+.edge-line {
+  @apply stroke-gray-400 stroke-2;
+}

@@ -105,10 +105,14 @@ def dashboard():
     return render_template('dashboard.html')
 
 @app.route('/board')
-@app.route('/board')
 def board():
     """Single Pane of Glass - Board Member View"""
     return render_template('board.html', resources=RESOURCES)
+
+@app.route('/chat')
+def chat():
+    """Command Center - Interactive Willow Chat"""
+    return render_template('chat.html')
 
 @app.route('/doc/password-sop')
 def password_sop():
@@ -353,122 +357,150 @@ def factory():
 def get_factory_story():
     """Fetches a complete claim journey for the Factory visualization."""
     print("DEBUG: /api/factory/story requested...", flush=True)
-    from neo4j import GraphDatabase
-    import certifi
+    from core.clients.graph_client import GraphClient
     
-    uri = os.getenv("NEO4J_URI")
-    user = os.getenv("NEO4J_USER")
-    password = os.getenv("NEO4J_PASSWORD")
-    
-    os.environ['SSL_CERT_FILE'] = certifi.where()
-    
-    driver = GraphDatabase.driver(uri, auth=(user, password))
+    client = GraphClient(agent_id="WebInterface")
     
     try:
-        with driver.session() as session:
-            # Query for a complete story suitable for the factory
-            # We look for a Person -> Pet -> Vet mechanism AND the Decision
-            result = session.run("""
-                MATCH (p:Person)-[:OWNS]->(pet:Pet)<-[:CONCERNS]-(c:Claim)-[:FILED_AGAINST]->(pol:Policy)
-                OPTIONAL MATCH (pet)-[:VISITED]->(vet:VetPractice)-[:DIAGNOSED]->(d:Diagnosis)
-                OPTIONAL MATCH (dec:Decision)-[:DECIDED_ON]->(c)
-                RETURN p, pet, c, pol, vet, d, dec
-                ORDER BY elementId(c) DESC
-                LIMIT 1
-            """)
-            
-            record = result.single()
-            if not record:
-                return jsonify({"status": "empty", "message": "No active claims found in the factory queue."})
-            
-            p = record['p']
-            pet = record['pet']
-            c = record['c']
-            pol = record['pol']
-            vet = record['vet']
-            d = record['d']
-            dec = record['dec']
-            
-            story = {
-                "person": {
-                    "name": p.get('name', 'Unknown'),
-                    "id": p.get('id', '')
-                },
-                "pet": {
-                    "name": pet.get('name', 'Unknown'),
-                    "species": pet.get('species', 'Animal')
-                },
-                "policy": {
-                    "insurer": "Affinity", # Default for now if not in graph
-                    "number": pol.get('policy_number', 'N/A')
-                },
-                "event": {
-                    "vet_name": vet.get('name', 'Unknown Vet') if vet else "Unknown Vet",
-                    "diagnosis_code": d.get('code', 'DX-000') if d else "DX-000",
-                    "diagnosis_desc": d.get('description', 'Undiagnosed') if d else "Undiagnosed"
-                },
-                "claim": {
-                    "status": c.get('status', 'Pending'),
-                    "amount": f"£{c.get('amount', 0)}"
-                },
-                "decision": {
-                    "outcome": dec.get('decision', 'PENDING') if dec else "PENDING",
-                    "reason": dec.get('reason', 'Under Review') if dec else "Under Review"
-                }
+        # Query for a complete story suitable for the factory
+        cypher = """
+            MATCH (p:Person)-[:OWNS]->(pet:Pet)<-[:CONCERNS]-(c:Claim)-[:FILED_AGAINST]->(pol:Policy)
+            OPTIONAL MATCH (pet)-[:VISITED]->(vet:VetPractice)-[:DIAGNOSED]->(d:Diagnosis)
+            OPTIONAL MATCH (dec:Decision)-[:DECIDED_ON]->(c)
+            RETURN properties(p) as person,
+                   properties(pet) as pet,
+                   properties(c) as claim,
+                   properties(pol) as policy,
+                   properties(vet) as vet,
+                   properties(d) as diagnosis,
+                   properties(dec) as decision
+            ORDER BY elementId(c) DESC
+            LIMIT 1
+        """
+        results = client.run(cypher)
+        
+        if not results:
+            return jsonify({"status": "empty", "message": "No active claims found in the factory queue."})
+        
+        record = results[0]
+        p = record['person']
+        pet = record['pet']
+        c = record['claim']
+        pol = record['policy']
+        vet = record['vet'] or {}
+        d = record['diagnosis'] or {}
+        dec = record['decision'] or {}
+        
+        story = {
+            "person": {
+                "name": p.get('name', 'Unknown'),
+                "id": p.get('id', '')
+            },
+            "pet": {
+                "name": pet.get('name', 'Unknown'),
+                "species": pet.get('species', 'Animal')
+            },
+            "policy": {
+                "insurer": "Purely Pets",
+                "number": pol.get('id', 'N/A')
+            },
+            "event": {
+                "vet_name": vet.get('name', 'Central Pet Hospital'),
+                "diagnosis_code": d.get('code', 'DX-000'),
+                "diagnosis_desc": d.get('description', 'Undiagnosed')
+            },
+            "claim": {
+                "status": c.get('status', 'Pending'),
+                "amount": f"£{c.get('amount', 0)}"
+            },
+            "decision": {
+                "outcome": dec.get('decision', 'PENDING'),
+                "reason": dec.get('reason', 'Under Review')
             }
-            
-            return jsonify({"status": "success", "story": story})
+        }
+        
+        return jsonify({"status": "success", "story": story})
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-    finally:
-        driver.close()
+
+@app.route('/api/factory/graph')
+def get_factory_graph():
+    """Fetches the ego-graph for the latest factory claim for D3 visualization."""
+    from core.clients.graph_client import GraphClient
+    client = GraphClient(agent_id="WebInterface")
+    
+    try:
+        # Serializable Node query
+        cypher_nodes = """
+            MATCH (p:Person)-[:OWNS]->(pet:Pet)<-[:CONCERNS]-(c:Claim)-[:FILED_AGAINST]->(pol:Policy)
+            WITH p, pet, c, pol ORDER BY elementId(c) DESC LIMIT 1
+            MATCH (n) WHERE n IN [p, pet, c, pol]
+            OPTIONAL MATCH (pet)-[:VISITED]->(vet:VetPractice)
+            OPTIONAL MATCH (vet)-[:DIAGNOSED]->(diag:Diagnosis)
+            OPTIONAL MATCH (dec:Decision)-[:DECIDED_ON]->(c)
+            
+            WITH collect(p)+collect(pet)+collect(c)+collect(pol)+collect(vet)+collect(diag)+collect(dec) as all_nodes
+            UNWIND all_nodes as n
+            WITH DISTINCT n WHERE n IS NOT NULL
+            RETURN elementId(n) as id, labels(n) as labels, properties(n) as props
+        """
+        nodes_res = client.run(cypher_nodes)
+        
+        # Link query
+        cypher_links = """
+            MATCH (p:Person)-[:OWNS]->(pet:Pet)<-[:CONCERNS]-(c:Claim)-[:FILED_AGAINST]->(pol:Policy)
+            WITH p, pet, c, pol ORDER BY elementId(c) DESC LIMIT 1
+            WITH [p, pet, c, pol] as core_nodes
+            MATCH (n)-[r]->(m) 
+            WHERE n IN core_nodes OR m IN core_nodes
+            RETURN elementId(n) as source, elementId(m) as target, type(r) as type
+        """
+        links_res = client.run(cypher_links)
+        
+        return jsonify({
+            "nodes": [{"id": n['id'], "label": n['props'].get('name') or n['props'].get('id') or n['labels'][0], "type": n['labels'][0], "properties": n['props']} for n in nodes_res],
+            "links": links_res
+        })
+            
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
 @app.route('/api/kanban')
 def get_kanban_data():
     """Fetches tasks for the Kanban board from AuraDB."""
-    from neo4j import GraphDatabase
-    import certifi
-    
-    uri = os.getenv("NEO4J_URI")
-    user = os.getenv("NEO4J_USER")
-    password = os.getenv("NEO4J_PASSWORD")
-    
-    os.environ['SSL_CERT_FILE'] = certifi.where()
-    
-    driver = GraphDatabase.driver(uri, auth=(user, password))
+    from core.clients.graph_client import GraphClient
+    client = GraphClient(agent_id="WebInterface")
     
     try:
-        with driver.session() as session:
-            result = session.run("""
-                MATCH (t:Task)
-                RETURN t.id as id, 
-                       t.title as title, 
-                       t.description as description, 
-                       t.status as status, 
-                       t.priority as priority, 
-                       t.assigned_to as assigned_to,
-                       t.created_at as created_at
-                ORDER BY t.priority DESC
-            """)
-            
-            tasks = []
-            for record in result:
-                tasks.append({
-                    "id": record["id"],
-                    "title": record["title"],
-                    "description": record["description"],
-                    "status": record["status"].lower().replace(' ', '_'), # Normalize status
-                    "priority": record["priority"],
-                    "assignee": record["assigned_to"],
-                    "date": record["created_at"].strftime('%d %b') if record["created_at"] else "N/A"
-                })
-            
-            return jsonify({"tasks": tasks})
+        results = client.run("""
+            MATCH (t:Task)
+            RETURN t.id as id, 
+                   t.title as title, 
+                   t.description as description, 
+                   t.status as status, 
+                   t.priority as priority, 
+                   t.assigned_to as assigned_to,
+                   t.created_at as created_at
+            ORDER BY t.priority DESC
+        """)
+        
+        tasks = []
+        for r in results:
+            tasks.append({
+                "id": r["id"],
+                "title": r["title"],
+                "description": r["description"],
+                "status": r["status"].lower().replace(' ', '_') if r["status"] else "to_do",
+                "priority": r["priority"],
+                "assignee": r["assigned_to"],
+                "date": r["created_at"]
+            })
+        
+        return jsonify({"tasks": tasks})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-    finally:
-        driver.close()
 
 @app.route('/people')
 def people_viewer():
@@ -477,11 +509,10 @@ def people_viewer():
         conn = get_db_connection()
         cur = conn.cursor()
         
-        # Simple fetch of 50 people
-        # In a real app we'd paginate, but this is a "peek"
+        # New Schema: customers table
         query = """
-            SELECT id, first_name, last_name, age, risk_score, policy_start_date, active 
-            FROM people 
+            SELECT id, full_name, email, city, postcode, date_of_birth, is_active 
+            FROM customers 
             LIMIT 100;
         """
         cur.execute(query)
@@ -489,13 +520,19 @@ def people_viewer():
         
         people = []
         for row in rows:
+            # Calculate age from DOB
+            from datetime import date
+            dob = row[5]
+            today = date.today()
+            age = today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
+            
             people.append({
                 "id": row[0],
-                "first_name": row[1],
-                "last_name": row[2],
-                "age": row[3],
-                "risk_score": row[4],
-                "policy_start_date": row[5],
+                "full_name": row[1],
+                "email": row[2],
+                "city": row[3],
+                "postcode": row[4],
+                "age": age,
                 "active": row[6]
             })
             
@@ -507,41 +544,231 @@ def people_viewer():
     except Exception as e:
         return f"Error loading people: {str(e)}"
 
-@app.route('/api/random-customer')
-def random_customer():
+# --- Operations (Robin's) Endpoints ---
+
+@app.route('/api/ops/stock')
+def get_ops_stock():
+    """Returns the 'Stock' level: Outstanding claims requiring assessment."""
+    from core.clients.graph_client import GraphClient
+    from datetime import datetime
+    
+    client = GraphClient(agent_id="WebInterface")
+    
+    try:
+        # Stock is claims in 'Pending' or 'Under Review' status
+        results = client.run("""
+            MATCH (c:Claim)
+            WHERE c.status IN ['Pending', 'Under Review']
+            RETURN count(c) as stock_count
+        """)
+        stock = results[0]['stock_count'] if results else 0
+        
+        return jsonify({
+            "status": "success",
+            "stock": stock,
+            "label": "Outstanding Claims (Stock)",
+            "last_updated": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/ops/performance')
+def get_ops_performance():
+    """Returns Claims per FTE per Hour for the previous week (Mock data for MVP)."""
+    fte_data = [
+        {"name": "Anne Farraday", "assessed": [3, 4, 2, 5, 4, 3, 4, 2], "hours": ["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00"]},
+        {"name": "Brian Miller", "assessed": [2, 3, 3, 2, 3, 4, 3, 3], "hours": ["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00"]},
+        {"name": "Chloe Smith", "assessed": [4, 5, 4, 1, 5, 6, 4, 5], "hours": ["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00"]},
+        {"name": "David Jones", "assessed": [1, 2, 3, 3, 2, 2, 3, 2], "hours": ["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00"]}
+    ]
+    
+    return jsonify({
+        "status": "success",
+        "data": fte_data,
+        "period": "Last Week (Mon-Fri Average)",
+        "metric": "Claims Assessed per Hour"
+    })
+
+# --- Assessor (Enrichment) Endpoints ---
+
+@app.route('/api/submit-quote', methods=['POST'])
+def submit_quote():
+    """Handles manual quote submission and injects into AuraDB."""
+    from core.clients.graph_client import GraphClient
+    data = request.form
+    
+    client = GraphClient(agent_id="WebInterface")
+    
+    # Create Customer, Pet, and Quote in AuraDB
+    cypher = """
+        MERGE (p:Person {email: $email})
+        SET p.name = $full_name,
+            p.phone = $phone,
+            p.address = $address,
+            p.city = $city,
+            p.postcode = $postcode,
+            p.dob = $dob
+            
+        MERGE (pet:Pet {name: $pet_name, owner_email: $email})
+        SET pet.species = $species,
+            pet.breed = $breed,
+            pet.gender = $gender,
+            pet.microchipped = $microchipped
+            
+        MERGE (p)-[:OWNS]->(pet)
+        
+        CREATE (q:Quote {
+            id: 'QT-' + randomUUID(),
+            cover_type: $cover_type,
+            excess: $excess,
+            limit: $limit,
+            timestamp: datetime()
+        })
+        CREATE (q)-[:FOR_PET]->(pet)
+        CREATE (p)-[:REQUESTED]->(q)
+        RETURN q.id as quote_id
+    """
+    
+    try:
+        params = {
+            "full_name": data.get('full_name'),
+            "email": data.get('email'),
+            "phone": data.get('phone_mobile'),
+            "address": data.get('address_line_1'),
+            "city": data.get('city'),
+            "postcode": data.get('postcode'),
+            "dob": data.get('date_of_birth'),
+            "pet_name": data.get('pet_name'),
+            "species": data.get('species'),
+            "breed": data.get('breed'),
+            "gender": data.get('gender'),
+            "microchipped": data.get('microchipped') == 'true',
+            "cover_type": data.get('cover_type'),
+            "excess": data.get('excess_amount'),
+            "limit": data.get('vet_fee_limit')
+        }
+        
+        results = client.run(cypher, params)
+        quote_id = results[0]['quote_id'] if results else "UNKNOWN"
+        
+        return render_template('quote_success.html', quote_id=quote_id)
+        
+    except Exception as e:
+        return f"Error submitting quote to Brain: {str(e)}", 500
+
+@app.route('/api/quote/bridge-from-npc/<int:customer_id>', methods=['POST'])
+def bridge_npc_to_aura(customer_id):
+    """Bridges an NPC from Postgres to AuraDB as a Quote."""
+    from core.clients.graph_client import GraphClient
+    
     try:
         conn = get_db_connection()
         cur = conn.cursor()
         
-        # Fetch a random person with a quote
-        # Using TABLESAMPLE for speed if possible, but ORDER BY RANDOM() is safer for small datasets
-        # Note: Schema does not have city yet, so we return a placeholder
-        query = """
-            SELECT p.id, p.first_name, p.last_name, q.text 
-            FROM people p 
-            JOIN quotes q ON p.id = q.person_id 
-            ORDER BY RANDOM() 
-            LIMIT 1;
-        """
-        cur.execute(query)
-        row = cur.fetchone()
+        # 1. Fetch NPC Details
+        cur.execute("SELECT full_name, email, phone_mobile, address_line_1, city, postcode, date_of_birth FROM customers WHERE id = %s", (customer_id,))
+        c_row = cur.fetchone()
+        if not c_row:
+            return jsonify({"error": "Customer not found"}), 404
+            
+        # 2. Fetch Pet Details
+        cur.execute("SELECT pet_name, species, breed, date_of_birth, gender, microchipped FROM pets WHERE customer_id = %s LIMIT 1", (customer_id,))
+        p_row = cur.fetchone()
+        
+        # 3. Fetch a Quote Detail (or generate one)
+        cur.execute("SELECT cover_type, excess_amount, vet_fee_limit, monthly_premium FROM quotes WHERE customer_id = %s LIMIT 1", (customer_id,))
+        q_row = cur.fetchone()
         
         cur.close()
         conn.close()
         
-        if row:
-            return jsonify({
-                "id": row[0],
-                "name": f"{row[1]} {row[2]}",
-                "location": "United Kingdom", # Placeholder until schema update
-                "quote": row[3],
-                "status": "Active"
+        # 4. Ingest into AuraDB
+        client = GraphClient(agent_id="PopulationBridge")
+        
+        cypher = """
+            MERGE (p:Person {email: $email})
+            SET p.name = $full_name,
+                p.phone = $phone,
+                p.city = $city,
+                p.postcode = $postcode
+                
+            MERGE (pet:Pet {name: $pet_name, owner_email: $email})
+            SET pet.species = $species,
+                pet.breed = $breed,
+                pet.gender = $gender
+                
+            MERGE (p)-[:OWNS]->(pet)
+            
+            CREATE (q:Quote {
+                id: 'QT-BR-' + randomUUID(),
+                cover_type: $cover_type,
+                monthly_premium: $premium,
+                source: 'PopulationBridge',
+                timestamp: datetime()
             })
-        else:
-            return jsonify({"error": "No data found. Is Frank running?"}), 404
-
+            CREATE (q)-[:FOR_PET]->(pet)
+            CREATE (p)-[:REQUESTED]->(q)
+            RETURN q.id as quote_id
+        """
+        
+        params = {
+            "full_name": c_row[0],
+            "email": c_row[1],
+            "phone": c_row[2],
+            "city": c_row[4],
+            "postcode": c_row[5],
+            "pet_name": p_row[0] if p_row else "Unknown",
+            "species": p_row[1] if p_row else "Dog",
+            "breed": p_row[2] if p_row else "Mixed",
+            "gender": p_row[4] if p_row else "Unknown",
+            "cover_type": q_row[0] if q_row else "Lifetime",
+            "premium": float(q_row[3]) if q_row else 25.0
+        }
+        
+        results = client.run(cypher, params)
+        return jsonify({"status": "success", "quote_id": results[0]['quote_id'] if results else "N/A"})
+        
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@app.route('/api/assessor/summary/<claim_ref>')
+def get_assessor_summary(claim_ref):
+    """Fetches the enriched summary for a specific claim."""
+    from core.skills.assess_claim_context import ClaimAssessorEnrichment
+    enricher = ClaimAssessorEnrichment()
+    summary = enricher.get_claim_summary(claim_ref)
+    return jsonify(summary)
+
+@app.route('/api/assessor/assess_note', methods=['POST'])
+def assess_claim_note():
+    """Assesses the relevance of a raw note to a claim (Apollo-1 logic)."""
+    from core.skills.assess_claim_context import ClaimAssessorEnrichment
+    data = request.json
+    claim_ref = data.get('claim_ref')
+    note = data.get('note')
+    
+    if not claim_ref or not note:
+        return jsonify({"error": "Missing claim_ref or note"}), 400
+        
+    enricher = ClaimAssessorEnrichment()
+    assessment = enricher.assess_unstructured_relevance(claim_ref, note)
+    return jsonify(assessment)
+
+@app.route('/api/assessor/adjust', methods=['POST'])
+def record_adjustment():
+    """Logs a human-in-the-loop adjustment for Apollo-1 heuristic betterment."""
+    from core.skills.assess_claim_context import ClaimAssessorEnrichment
+    data = request.json
+    claim_ref = data.get('claim_ref')
+    step = data.get('step', 'General')
+    adjustment = data.get('adjustment')
+    
+    if not claim_ref or not adjustment:
+        return jsonify({"error": "Missing claim_ref or adjustment"}), 400
+        
+    enricher = ClaimAssessorEnrichment()
+    enricher.log_assessor_adjustment(claim_ref, step, adjustment)
+    return jsonify({"status": "success", "message": "Adjustment logged to Brain"})
 
 if __name__ == '__main__':
     # Run on 0.0.0.0 to be accessible via Tailscale if running on Bunny/Mac
